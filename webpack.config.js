@@ -5,10 +5,16 @@ const { NODE_ENV } = process.env;
 const isProduction = NODE_ENV === 'production';
 
 const config = {
-  entry: './src/app.js', // Entry point
+  entry: './src/index.js', // Entry point
   output: {
-    filename: 'bundle.js',  // Output file
-    path: path.resolve(__dirname, 'dist'), // Output directory
+    filename: 'myjames.js',  // Output file
+    path: path.resolve(__dirname, 'dist'), // Output directory,
+    library:{
+      name: 'James',
+      type: 'umd',
+      umdNamedDefine: true,
+    },
+    globalObject: 'globalThis',
   },
   module: {
     rules: [
@@ -27,6 +33,9 @@ const config = {
   mode: isProduction ? 'production' : 'development', // Set mode
   resolve: {
     preferRelative: true, // Prefer relative paths
+  },
+  optimization: {
+    minimize: false // Optional: prevents minification for clearer output
   }
 };
 
