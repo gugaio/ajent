@@ -1,5 +1,5 @@
 import { Agent } from '../../agent/base_agent';
-import { withDescription } from '../../tooling/decorator';
+import { tool } from '../../tooling/decorator';
 
 const ID = "playback_agent"
 const TASK = "Analyze playback api video information"
@@ -30,7 +30,7 @@ export class PlaybackAgent extends Agent {
         return {instruction, tools}
     }
 
-    @withDescription("Load a video into the context.")
+    @tool("Load a video into the context.")
     load_video_to_context(video_id) {
         this.context["video"] = {
             id: video_id,
@@ -43,7 +43,7 @@ export class PlaybackAgent extends Agent {
         return `Video ${video_id} loaded to context. The available fields are ${this._get_video_fields()}`;
     }
 
-    @withDescription("Get video info")
+    @tool("Get video info")
     get_video_info(fields) {
         const video = this.context["video"];
         const requested_fields = fields.split(",");

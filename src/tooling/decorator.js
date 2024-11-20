@@ -2,13 +2,13 @@
 const FUNCTION_DESCRIPTION = Symbol('functionDescription');
 
 // Decorator factory to add description to functions
-function withDescription(description) {
+function tool(description) {
     return function(target) {
         if (typeof target === 'function') {
             target[FUNCTION_DESCRIPTION] = description;
             return target;
         }
-        throw new Error('withDescription decorator can only be used on functions');
+        throw new Error('tool decorator can only be used on functions');
     };
 }
 
@@ -67,4 +67,4 @@ function getDescribedFunctions(obj) {
     return result;
 }
 
-export { withDescription, getDescription, getDescribedFunctions };
+export { tool, getDescription, getDescribedFunctions };

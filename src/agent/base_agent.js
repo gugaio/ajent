@@ -1,5 +1,5 @@
 import toolSchemaGenerator from '../tooling/schema_generator';
-import { withDescription, getDescribedFunctions } from '../tooling/decorator';
+import { tool, getDescribedFunctions } from '../tooling/decorator';
 
 export class Agent {
   constructor(id, task, context = {}) {
@@ -12,7 +12,7 @@ export class Agent {
     return `The agent with id ${this.id} is a base agent.`, []
   }
 
-  @withDescription("Transfer to an agent.")
+  @tool("Transfer to an agent.")
   transfer_to_agent (id){
     const new_agent = this.context["agents"][id]
     return new_agent
