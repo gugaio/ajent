@@ -19,23 +19,40 @@ export class ConversationManager {
     }
     
     this.current_agent = new TriageAgent(this.context, agents, initial_instruction);
+    this.messages = [];
   }
+
+  async processMessage(message) {
+    try {
+      this.messages.push({content: message, role: 'user'});
+      const reponseMessage = await this.processConversation();
+      const response = reponseMessage.content;
+      return response;
+    } catch (error) {
+      console.error('Message processing failed:', error);
+      throw error;
+    }
+  }
+
 
   /**
    * @param {Array<Message>} messages
    * @returns {Promise<Message>}
    */
-  async processConversation(messages) {
+  async processConversation() {
     try {
-      let {messages: enrichedMessages, tools} = this.enrichMessages(messages);
-      const toolsSchems = this.current_agent.toolSchemas(tools);
-
       while(true){
-        const response = await this.api.sendMessage(enrichedMessages, toolsSchems);
+        let {messages: enrichedMessages, tools, toolSchemas} = this.enrichMessages(this.messages);
+        const response = await this.api.sendMessage(enrichedMessages, toolSchemas);
+        this.messages.push(response);
         if(!this.hasToolCalls(response)){
           return response;
         }
-        enrichedMessages= this.handleToolResponse(response, enrichedMessages);
+        const toolMessages= this.handleToolResponse(response, enrichedMessages);
+        this.messages = [
+          ...this.messages,
+          ...toolMessages
+        ];
       }
       
     } catch (error) {
@@ -56,7 +73,8 @@ export class ConversationManager {
       role: 'system'
     };
     const tools = instructions.tools.concat([this.current_agent.transfer_to_agent]);
-    return {messages:[system_instruction, ...messages], tools: tools};
+    const toolSchemas = this.current_agent.toolSchemas(tools);
+    return {messages:[system_instruction, ...messages], tools: tools, toolSchemas};
   }
 
   /**
@@ -78,12 +96,6 @@ export class ConversationManager {
   handleToolResponse(response, previousMessages) {
     const {messages, current_agent} = this.toolService.executeTools(response.tool_calls, this.current_agent);
     this.current_agent = current_agent;
-    const updatedMessages = [
-      ...previousMessages,
-      response,
-      ...messages
-    ];
-    
-    return updatedMessages
+    return messages
   }
 }
