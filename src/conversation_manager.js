@@ -12,7 +12,7 @@ export class ConversationManager {
     this.api = new ConversationApi(apiUrl);
     this.toolService = new ToolExecutionService();
     this.agents = agents;
-    this.context = {agents: agents};
+    this.context = {agents: agents, viewer: {}};
     for (const agent of agents) {
       this.context.agents[agent.id] = agent;
       agent.context = this.context;
@@ -24,7 +24,9 @@ export class ConversationManager {
 
   async processMessage(message) {
     try {
+      console.log('Processing message:', message);
       this.messages.push({content: message, role: 'user'});
+      this.context.viewer = {};
       const reponseMessage = await this.processConversation();
       const response = reponseMessage.content;
       return response;
@@ -43,12 +45,16 @@ export class ConversationManager {
     try {
       while(true){
         let {messages: enrichedMessages, tools, toolSchemas} = this.enrichMessages(this.messages);
+        console.log('Request to Spinal with messages:', enrichedMessages);
         const response = await this.api.sendMessage(enrichedMessages, toolSchemas);
         this.messages.push(response);
         if(!this.hasToolCalls(response)){
+          console.log('Conversation finished:', response);
           return response;
         }
-        const toolMessages= this.handleToolResponse(response, enrichedMessages);
+        console.log('Spinal asked tools:', response);
+        const toolMessages= await this.handleToolResponse(response, enrichedMessages);
+        console.log('Tool messages:', toolMessages);
         this.messages = [
           ...this.messages,
           ...toolMessages
@@ -93,8 +99,8 @@ export class ConversationManager {
    * @param {Array<Object>} tools
    * @returns {Promise<Message>}
    */
-  handleToolResponse(response, previousMessages) {
-    const {messages, current_agent} = this.toolService.executeTools(response.tool_calls, this.current_agent);
+  async handleToolResponse(response, previousMessages) {
+    const {messages, current_agent} = await this.toolService.executeTools(response.tool_calls, this.current_agent);
     this.current_agent = current_agent;
     return messages
   }

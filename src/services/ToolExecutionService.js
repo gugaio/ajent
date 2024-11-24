@@ -6,18 +6,21 @@ export class ToolExecutionService {
    * @param {Array<ToolCall>} toolCalls
    * @returns {Array<Message>}
    */
-  executeTools(toolCalls, agent) {
+  async executeTools(toolCalls, agent) {
     const toolResults = [];
     let current_agent = agent;
     for( const toolCall of toolCalls){
-      const result = execute_tool(toolCall, agent);
+      const result = await execute_tool(toolCall, agent);
       if(result instanceof Agent){
         current_agent = result;
+        console.log('Transfered to', current_agent.id);
         toolResults.push(this.createToolMessageResult(toolCall.id, `Transfered to ${current_agent.id}. Adopt persona immediately.`, agent));
       }else{
+        console.log('Tool result:', result);
         toolResults.push(this.createToolMessageResult(toolCall.id, result, agent));
       }
     }
+    console.log('Tool calls finished:', toolResults);
     return {messages: toolResults, current_agent: current_agent};
   }
 
