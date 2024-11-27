@@ -1,20 +1,19 @@
 // webpack.config.js
-const path = require('path');
-
 const { NODE_ENV } = process.env;
 const isProduction = NODE_ENV === 'production';
 
-const config = {
+export default {
   entry: './src/index.js', // Entry point
   output: {
     filename: 'myjames.js',  // Output file
-    path: path.resolve(__dirname, 'dist'), // Output directory,
-    library:{
-      name: 'James',
-      type: 'umd',
-      umdNamedDefine: true,
+    path: new URL('./dist', import.meta.url).pathname,
+    library: {
+      type: "module", // Specify ESM
     },
-    globalObject: 'globalThis',
+    module: true
+  },
+  experiments: {
+    outputModule: true, // Enable module output
   },
   module: {
     rules: [
@@ -36,12 +35,6 @@ const config = {
   },
   optimization: {
     minimize: false // Optional: prevents minification for clearer output
-  }
+  },
+  devtool : 'source-map'
 };
-
-if(!isProduction) {
-  config.devtool = 'source-map'; // Generate source maps in development
-}
-
-
-module.exports = config;

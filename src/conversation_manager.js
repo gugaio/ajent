@@ -1,6 +1,6 @@
-import { ConversationApi } from './index';
-import { ToolExecutionService } from './services/ToolExecutionService';
-import { TriageAgent } from './agent/triage_agent';
+import { ConversationApi } from './index.js';
+import { ToolExecutionService } from './services/ToolExecutionService.js';
+import { TriageAgent } from './agent/triage_agent.js';
 
 
 export class ConversationManager {

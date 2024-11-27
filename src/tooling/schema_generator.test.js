@@ -1,4 +1,4 @@
-import toolSchemaGenerator from './schema_generator';
+import toolSchemaGenerator from './schema_generator.js';
 
 const load_video_to_context = (video_id) => {
   /**

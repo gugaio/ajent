@@ -1,5 +1,5 @@
-import {ConversationManager} from './index';
-import {PlaybackAgent} from './samples/playback/playbackAgent';
+import {ConversationManager} from './index.js';
+import {PlaybackAgent} from './samples/playback/playbackAgent.js';
 
 
 const initial_instruction = 'You are a playback api analyst';

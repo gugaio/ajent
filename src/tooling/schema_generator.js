@@ -1,4 +1,4 @@
-import {getDescription} from './decorator';
+import {getDescription} from './decorator.js';
 
 function toolSchemaGenerator(func) {
     const description = getDescription(func) || extractFunctionComment(func)

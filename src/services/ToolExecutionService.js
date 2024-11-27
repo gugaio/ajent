@@ -1,5 +1,5 @@
-import execute_tool from '../tooling/tools';
-import { Agent } from '../agent/base_agent';
+import execute_tool from '../tooling/tools.js';
+import { Agent } from '../agent/base_agent.js';
 
 export class ToolExecutionService {
   /**

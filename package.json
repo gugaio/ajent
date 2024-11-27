@@ -1,7 +1,11 @@
 {
-  "name": "rip",
-  "version": "1.0.0",
-  "main": "index.js",
+  "name": "@gugaio/james",
+  "version": "0.1.0",
+  "main": "dist/myjames.js",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack",

@@ -1,5 +1,5 @@
-import toolSchemaGenerator from '../tooling/schema_generator';
-import { tool, getDescribedFunctions } from '../tooling/decorator';
+import toolSchemaGenerator from '../tooling/schema_generator.js';
+import { tool, getDescribedFunctions } from '../tooling/decorator.js';
 
 export class Agent {
   constructor(id, task, context = {}) {

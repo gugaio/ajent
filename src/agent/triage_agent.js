@@ -1,4 +1,4 @@
-import { Agent } from './base_agent';
+import { Agent } from './base_agent.js';
 
 const ID = "TriageAgent"
 const TASK = "Triage the user to the right agent or tool"
