@@ -8,7 +8,7 @@ export class ConversationManager {
    * @param {string} apiUrl
    * @param {Object} agent
    */
-  constructor(initial_instruction,apiUrl, agents) {
+  constructor(apiUrl, agents, triage_instruction) {
     this.api = new ConversationApi(apiUrl);
     this.toolService = new ToolExecutionService();
     this.agents = agents;
@@ -17,8 +17,12 @@ export class ConversationManager {
       this.context.agents[agent.id] = agent;
       agent.context = this.context;
     }
-    
-    this.current_agent = new TriageAgent(this.context, agents, initial_instruction);
+    if(triage_instruction){
+      this.current_agent = new TriageAgent(this.context, agents, triage_instruction);
+    }else{
+      this.current_agent = agents[0];
+    }
+    console.log('Initial agent:', this.current_agent.id);
     this.messages = [];
   }
 
