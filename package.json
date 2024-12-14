@@ -1,7 +1,8 @@
 {
-  "name": "@gugaio/james",
+  "name": "@gugaio/ajent",
   "version": "0.1.0",
-  "main": "dist/myjames.js",
+  "main": "dist/ajent.cls",
+  "module": "dist/ajent.esm.js",
   "type": "module",
   "files": [
     "dist"
