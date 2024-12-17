@@ -1,11 +1,12 @@
 import axios from 'axios';
 
 export class ConversationApi {
-  constructor(baseUrl) {
+  constructor(baseUrl, xApiToken) {
     this.client = axios.create({
       baseURL: baseUrl,
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'x-api-token': xApiToken
       }
     });
   }

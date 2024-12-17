@@ -1,5 +1,5 @@
 {
-  "name": "@gugaio/ajent",
+  "name": "ajent",
   "version": "0.1.0",
   "main": "dist/ajent.cls",
   "module": "dist/ajent.esm.js",

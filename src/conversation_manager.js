@@ -8,8 +8,8 @@ export class ConversationManager {
    * @param {string} apiUrl
    * @param {Object} agent
    */
-  constructor(apiUrl, agents, triage_instruction) {
-    this.api = new ConversationApi(apiUrl);
+  constructor(apiUrl, xApiToken, agents, triage_instruction) {
+    this.api = new ConversationApi(apiUrl, xApiToken);
     this.toolService = new ToolExecutionService();
     this.agents = agents;
     this.context = {agents: agents, viewer: {}};
