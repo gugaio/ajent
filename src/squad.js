@@ -1,9 +1,12 @@
 import { ConversationManager } from './conversation_manager.js';
 
+const DEFAULT_AJENT_API_URL = 'https://spinal.onrender.com/';
+
+
 export class Squad {
 
-  constructor(agents, apiToken, triage_instruction, apiUrl) {
-    this._conversationManager = new ConversationManager(apiUrl, apiToken, agents, triage_instruction);
+  constructor({agents, apiToken, triageInstruction, apiUrl = DEFAULT_AJENT_API_URL}) {
+    this._conversationManager = new ConversationManager(apiUrl, apiToken, agents, triageInstruction);
   }
 
   async send(message) {
