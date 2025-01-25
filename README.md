@@ -83,8 +83,7 @@ import { MyCustomAgent } from './myCustomAgent';
 const agents = [new MyCustomAgent()];
 const squad = new Squad({
     agents,
-    apiToken: 'your-api-token',
-    apiUrl: 'your-api-url'
+    apiToken: 'your-api-token'
 });
 
 // Send a message
@@ -125,8 +124,7 @@ function ChatComponent() {
         const agents = [new MyCustomAgent()];
         return new Squad({
             agents,
-            apiToken: process.env.REACT_APP_API_TOKEN,
-            apiUrl: process.env.REACT_APP_API_URL
+            apiToken: process.env.REACT_APP_API_TOKEN
         });
     });
 
@@ -171,7 +169,6 @@ Create a `.env` file in your project root:
 
 ```env
 REACT_APP_API_TOKEN=your-api-token
-REACT_APP_API_URL=your-api-url
 ```
 
 ## Available Agents
@@ -219,7 +216,6 @@ class CustomAgent extends Agent {
 new Squad({
     agents,            // Array of agents
     apiToken,         // API token for authentication
-    apiUrl,           // API endpoint URL
     triageInstruction // Optional triage instructions
 })
 ```
