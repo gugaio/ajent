@@ -180,14 +180,6 @@ function ChatComponent() {
 export default ChatComponent;
 ```
 
-## Variáveis de ambiente
-
-Crie um arquivo `.env` na raiz do seu projeto:
-
-```env
-AJENT_API_TOKEN=your-api-token
-```
-
 ## API Reference
 
 ### Squad
