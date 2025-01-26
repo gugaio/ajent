@@ -1,5 +1,7 @@
 # Ajent
 
+- [Read in English](README.md)
+
 Ajent é uma framework JavaScript para construir agentes conversacionais com capacidades de ferramentas. Fornece um framework para criar, gerenciar e orquestrar múltiplos agentes que podem lidar com diferentes tipos de conversas e tarefas.
 
 ## Recursos

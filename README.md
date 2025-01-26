@@ -1,5 +1,7 @@
 # Ajent
 
+- [Leia em Português](README.pt-br.md)
+
 Ajent is a JavaScript library for building conversational agents with tool capabilities. It provides a framework to create, manage, and orchestrate multiple agents that can handle different types of conversations and tasks.
 
 ## Features
