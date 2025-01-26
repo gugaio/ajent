@@ -73,6 +73,23 @@ class MyCustomAgent extends Agent {
 }
 ```
 
+## Observação sobre o uso do apiToken
+Para inicializar o Squad, é necessário fornecer seu api token. O token pode ser obtido registrando um endpoint no site www.ajent.com.br, onde você receberá um apiToken para uso seguro. Isso é necessário para não expor seu llm token no front de sua aplicação.
+
+Caso precise de uma solução mais rápida para testes, você pode utilizar diretamente o token LLM (llmToken), como mostrado abaixo:
+
+```javascript
+const squad = new Squad({
+    agents,
+    llmToken: 'your-llm-token'
+});
+```
+
+MAS ATENÇÃO: o uso do llmToken diretamente no cliente não é seguro e não deve ser feito em ambientes de produção, pois expõe o token de forma pública. Para produção, recomendamos fortemente a criação de um endpoint seguro no www.ajent.com.br.
+
+Como alternativa, você também pode criar seu próprio serviço proxy para interagir com as LLMs. Para facilitar essa implementação, disponibilizamos uma biblioteca open source em: https://github.com/gugaio/ajent-py-server-lib.
+
+
 ### Usando o Squad Manager
 
 ```javascript
