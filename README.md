@@ -90,6 +90,20 @@ const squad = new Squad({
 const response = await squad.send("Your message here");
 ```
 
+## Note on Using apiToken
+To initialize the Squad, you need to provide an authentication token. You can obtain the token by registering an endpoint on the www.ajent.com.br website, where you will receive an apiToken for secure usage.
+
+If you need a quicker solution for testing, you can directly use the LLM token (llmToken), as shown below:
+```javascript
+const squad = new Squad({
+    agents,
+    llmToken: 'your-llm-token'
+});
+```
+Warning: Using the llmToken directly on the client side is not secure and should never be done in production, as it exposes the token publicly. For production environments, we strongly recommend creating a secure endpoint on www.ajent.com.br.
+
+Alternatively, you can build your own proxy service to interact with the LLM. To facilitate this implementation, we provide an open-source library at: https://github.com/gugaio/ajent-py-server-lib.
+
 ## React Integration
 
 ### Setup for React Projects
@@ -161,14 +175,6 @@ function ChatComponent() {
 }
 
 export default ChatComponent;
-```
-
-## Environment Variables
-
-Create a `.env` file in your project root:
-
-```env
-REACT_APP_API_TOKEN=your-api-token
 ```
 
 ## Available Agents
