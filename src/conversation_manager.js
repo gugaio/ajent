@@ -1,5 +1,5 @@
 import { ConversationApi } from './index.js';
-import { AgentToolOrchestrator } from './infra/AgentToolOrchestrator.js';
+import { AgentToolOrchestrator } from './infra/agent_tool_orchestrator.js';
 import { TriageAgent } from './agent/triage_agent.js';
 import Tool from './tooling/tool.js';
 import {schemaGenerator} from './tooling/schema_generator.js';
@@ -106,7 +106,7 @@ export class ConversationManager {
    * @returns {Promise<Message>}
    */
   async handleToolResponse(response, previousMessages) {
-    const {messages, current_agent} = await this.toolOrchestrator.executeTools(response.tool_calls, this.current_agent);
+    const {messages, current_agent} = await this.toolOrchestrator.executeToolCalls(response.tool_calls, this.current_agent);
     this.current_agent = current_agent;
     return messages
   }

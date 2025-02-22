@@ -7,8 +7,9 @@ const load_video_to_context = (video_id) => {
 
 test('function with a parameter', () => {
   
+  const toolFuncLabel = "load_video_to_context";
   const toolDescription = "Load a video into the context";
-  const schema = toolSchemaGenerator(load_video_to_context, toolDescription);
+  const schema = toolSchemaGenerator(toolFuncLabel, toolDescription, load_video_to_context);
   expect(schema).toEqual({
     type: 'function',
     function: {

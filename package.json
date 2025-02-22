@@ -8,7 +8,7 @@
     "dist"
   ],
   "scripts": {
-    "test": "jest --runInBand --silent=false",
+    "test": "jest --runInBand --silent=true",
     "build": "webpack",
     "start": "node dist/app.js",
     "dev": "webpack serve --open",
