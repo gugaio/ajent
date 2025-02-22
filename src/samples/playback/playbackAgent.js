@@ -1,5 +1,5 @@
 import { Agent } from '../../agent/base_agent.js';
-import { tool } from '../../tooling/decorator.js';
+import Tool from '../../tooling/tool.js';
 
 const ID = "playback_agent"
 const TASK = "Analyze playback api video information"
@@ -7,17 +7,18 @@ const TASK = "Analyze playback api video information"
 export class PlaybackAgent extends Agent {
     constructor() {
         super(ID, TASK);
+        this.addTool(new Tool('load_video_to_context', "Load a video into the context.", this.load_video_to_context));
+        this.addTool(new Tool('get_video_info', "Get video info", this.get_video_info));        
     }
 
-    instructions = () => {
+    instruction = () => {
         if(!this.context["video"]) {
             const instruction = `No video loaded into context.
             You need load a video using the load_video_to_context tool.
             User must provide the video id.
             Ask the user for the video id if not provided yet.
             Then call the tool with the video id as argument.`;
-            const tools = [this.load_video_to_context];
-            return {instruction, tools}
+            return instruction;
         }
 
         const video_available_fields = this._get_video_fields();
@@ -26,12 +27,10 @@ export class PlaybackAgent extends Agent {
         The tool requires a list of fields to retrieve, the fields must be a string separated by commas.
         The available fields are ${video_available_fields}.
         Provide the fields based on the user request.`;
-        const tools = [this.get_video_info]; 
-        return {instruction, tools}
+        return instruction;
     }
 
-    @tool("Load a video into the context.")
-    load_video_to_context(video_id) {
+    async load_video_to_context(video_id) {
         this.context["video"] = {
             id: video_id,
             title: "Gladiator",
@@ -43,8 +42,7 @@ export class PlaybackAgent extends Agent {
         return `Video ${video_id} loaded to context. The available fields are ${this._get_video_fields()}`;
     }
 
-    @tool("Get video info")
-    get_video_info(fields) {
+    async get_video_info(fields) {
         const video = this.context["video"];
         const requested_fields = fields.split(",");
         const available_fields = this._get_video_fields().split(",");

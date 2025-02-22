@@ -1,5 +1,3 @@
-import {getDescription} from './decorator.js';
-
 function schemaGenerator(tools) {
   return tools.map(tool => toolSchemaGenerator(tool.id, tool.description, tool.tool_function));
 }
@@ -7,7 +5,7 @@ function schemaGenerator(tools) {
 
 function toolSchemaGenerator(id, toolDescription, func) {
     const toolId = id || func.name; 
-    const description = toolDescription || getDescription(func) || extractFunctionComment(func)
+    const description = toolDescription || extractFunctionComment(func)
     const params = getFunctionParameters(func);
     const paramList = params.split(",").map(param => param.trim()).filter(Boolean);
 
