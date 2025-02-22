@@ -1,7 +1,6 @@
 import { ConversationApi } from './index.js';
 import { AgentToolOrchestrator } from './infra/agent_tool_orchestrator.js';
 import { TriageAgent } from './agent/triage_agent.js';
-import Tool from './tooling/tool.js';
 import {schemaGenerator} from './tooling/schema_generator.js';
 
 
@@ -50,7 +49,7 @@ export class ConversationManager {
   async processConversation() {
     try {
       while(true){
-        let {messages: enrichedMessages, tools, toolSchemas} = this.enrichMessages(this.messages);
+        let {messages: enrichedMessages, toolSchemas} = this.enrichMessages(this.messages);
         console.log('Request to Spinal with messages:', enrichedMessages);
         const response = await this.api.sendMessage(enrichedMessages, toolSchemas);
         this.messages.push(response);
@@ -79,14 +78,12 @@ export class ConversationManager {
    * @returns {Array<Message>}
    */
   enrichMessages(messages) {
-    const instruction = this.current_agent.instruction();
     const system_instruction = {
-      content: instruction,
+      content: this.current_agent.instruction(),
       role: 'system'
     };
-    const tools = this.current_agent.tools();
-    const toolSchemas = schemaGenerator(tools);
-    return {messages:[system_instruction, ...messages], tools: tools, toolSchemas};
+    const toolSchemas = schemaGenerator(this.current_agent.tools());
+    return {messages:[system_instruction, ...messages], toolSchemas};
   }
 
   /**

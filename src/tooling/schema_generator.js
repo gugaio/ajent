@@ -1,20 +1,17 @@
 function schemaGenerator(tools) {
-  return tools.map(tool => toolSchemaGenerator(tool.id, tool.description, tool.tool_function));
+  return tools.map(tool => toolSchemaGenerator(tool));
 }
 
 
-function toolSchemaGenerator(id, toolDescription, func) {
-    const toolId = id || func.name; 
-    const description = toolDescription || extractFunctionComment(func)
-    const params = getFunctionParameters(func);
+function toolSchemaGenerator(tool) {
+    const description = tool.description
+    const params = _getFunctionParameters(tool.tool_function);
     const paramList = params.split(",").map(param => param.trim()).filter(Boolean);
-
-    console.log("toolId", toolId);
   
     const schema = {
       type: "function",
       function: {
-        name: toolId,
+        name: tool.id,
         description: description || "No description provided.",
         parameters: {
           type: "object",
@@ -25,20 +22,18 @@ function toolSchemaGenerator(id, toolDescription, func) {
     };
   
     paramList.forEach(param => {
-      // Assume all parameters are strings for simplicity, you can customize this
+      // Assume all parameters are strings for simplicity, we can customize this later
       schema.function.parameters.properties[param] = {
         type: "string",
         description: `Description for parameter: ${param}.`
       };
       schema.function.parameters.required.push(param);
     });
-
-    console.log("schema", schema);
   
     return schema;
 }
 
-function getFunctionParameters(func) {
+function _getFunctionParameters(func) {
   const funcStr = func.toString().trim();
   
   // Handle traditional functions: function name(params) { ... }
@@ -51,24 +46,5 @@ function getFunctionParameters(func) {
 
   return ''; // Fallback if no match
 }
-
-function extractFunctionComment(func) {
-    const funcStr = func.toString();
-    console.log("-------------------------")
-    debugger
-    console.log(funcStr);
-    const commentMatch = funcStr.match(/\/\*\*([\s\S]*?)\*\//);
-  
-    if (commentMatch) {
-      const comment = commentMatch[1]
-        .split('\n') // Split lines
-        .map(line => line.trim().replace(/^\* ?/, '')) // Remove leading `*` or whitespace
-        .filter(line => line.length > 0) // Remove empty lines
-        .join(' '); // Join lines into a single string
-      return comment;
-    }
-  
-    return "No description found."; // Default if no comment
-}
  
-  export {toolSchemaGenerator, schemaGenerator};
+export {toolSchemaGenerator, schemaGenerator};

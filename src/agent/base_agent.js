@@ -29,7 +29,7 @@ export class Agent {
     return this._tools.reduce((acc, tool) => {
       acc[tool.id] = tool.tool_function
       return acc
-    })
+    }, {})
   };
   
 } 
