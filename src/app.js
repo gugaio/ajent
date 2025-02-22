@@ -1,28 +1,27 @@
-import {ConversationManager} from './index.js';
+import {Squad} from './index.js';
 import {PlaybackAgent} from './samples/playback/playbackAgent.js';
 
+console.log('Starting conversation manager');
 
 const initial_instruction = 'You are a playback api analyst';
 
 const agents = [new PlaybackAgent()];
 
-const client = new ConversationManager(initial_instruction, 'http://localhost:5000', agents);
+let squadParams = {
+    agents: agents,
+    apiToken: "xxxxxxxxx-xxxxxx-xxxx"
+  }
 
-let messages = [ {content: 'I want to analyse a playback video', role: 'user'}];
+const squad = new Squad(squadParams);
 
-let message = await client.processConversation(messages);
 
-messages = messages.concat(message);
+let message = await squad.send('I want to analyse a playback video');
+console.log('Response:', message);
 
-let newMEssage  = [ {content: 'Load video 999 to context', role: 'user'}];
-messages = messages.concat(newMEssage);
+message = await squad.send('Load video 999 to context');
 
-message = await client.processConversation(messages);
+console.log('Response:', message);
 
-messages = messages.concat(message);
-newMEssage  = [ {content: 'What the duration and description of video?', role: 'user'}];
-messages = messages.concat(newMEssage);
-
-message = await client.processConversation(messages);
+message = await squad.send('What the duration and description of video?');
 
 console.log('Response:', message);
