@@ -1,6 +1,8 @@
 import { ConversationApi } from './index.js';
 import { ToolExecutionService } from './services/ToolExecutionService.js';
 import { TriageAgent } from './agent/triage_agent.js';
+import Tool from './tooling/tool.js';
+import {schemaGenerator} from './tooling/schema_generator.js';
 
 
 export class ConversationManager {
@@ -77,13 +79,13 @@ export class ConversationManager {
    * @returns {Array<Message>}
    */
   enrichMessages(messages) {
-    const instructions = this.current_agent.instructions();
+    const instruction = this.current_agent.instruction();
     const system_instruction = {
-      content: instructions.instruction,
+      content: instruction,
       role: 'system'
     };
-    const tools = instructions.tools.concat([this.current_agent.transfer_to_agent]);
-    const toolSchemas = this.current_agent.toolSchemas(tools);
+    const tools = this.current_agent.tools();
+    const toolSchemas = schemaGenerator(tools);
     return {messages:[system_instruction, ...messages], tools: tools, toolSchemas};
   }
 

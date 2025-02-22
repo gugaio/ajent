@@ -1,4 +1,3 @@
-import execute_tool from '../tooling/tools.js';
 import { Agent } from '../agent/base_agent.js';
 
 export class ToolExecutionService {
@@ -10,7 +9,7 @@ export class ToolExecutionService {
     const toolResults = [];
     let current_agent = agent;
     for( const toolCall of toolCalls){
-      const result = await execute_tool(toolCall, agent);
+      const result = await this.executeTool(toolCall, agent);
       if(result instanceof Agent){
         current_agent = result;
         console.log('Transfered to', current_agent.id);
@@ -22,6 +21,16 @@ export class ToolExecutionService {
     }
     console.log('Tool calls finished:', toolResults);
     return {messages: toolResults, current_agent: current_agent};
+  }
+
+  async executeTool(message, agent) {
+    let func = agent.mapTools()[message.function.name]
+    const toolArgs = JSON.parse(message.function.arguments)
+    const parameters = Object.keys(toolArgs).map(key => toolArgs[key])
+    func = func.bind(agent)
+    const result = await func(...parameters)
+    console.log('Tool executed:', message.function.name, result)
+    return result
   }
 
   /**

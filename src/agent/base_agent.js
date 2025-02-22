@@ -1,4 +1,3 @@
-import toolSchemaGenerator from '../tooling/schema_generator.js';
 import { tool, getDescribedFunctions } from '../tooling/decorator.js';
 
 export class Agent {
@@ -16,10 +15,6 @@ export class Agent {
   transfer_to_agent (id){
     const new_agent = this.context["agents"][id]
     return new_agent
-  }
-
-  toolSchemas = (lsttools) => {
-    return lsttools.map(tool => toolSchemaGenerator(tool));
   }
 
   mapTools = () =>  {
