@@ -1,6 +1,6 @@
 import { Agent } from '../agent/base_agent.js';
 
-export class ToolExecutionService {
+export class AgentToolOrchestrator {
   /**
    * @param {Array<ToolCall>} toolCalls
    * @returns {Array<Message>}
