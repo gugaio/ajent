@@ -1,4 +1,4 @@
-import {toolSchemaGenerator} from './schema_generator.js';
+import {toolSchemaGenerator, schemaGenerator} from './schema_generator.js';
 import Tool from './tool.js';
 
 
@@ -89,3 +89,51 @@ it('function without a parameter', () => {
       },
     });
   });
+
+  it('function schemaGenerator with multiple tools', () => {
+      
+      const toolFuncLabel1 = "tool_with_two_parameters";
+      const toolDescription1 = "Load a video of two parameter into the context";
+      const tool1 = new Tool(toolFuncLabel1, toolDescription1, tool_with_two_parameters);
+  
+      const toolFuncLabel2 = "tool_without_parameter";
+      const toolDescription2 = "Load a video without parameter into the context";
+      const tool2 = new Tool(toolFuncLabel2, toolDescription2, tool_without_parameter);
+  
+      const schema = schemaGenerator([tool1, tool2]);
+      expect(schema).toEqual([
+        {
+          type: 'function',
+          function: {
+            name: 'tool_with_two_parameters',
+            description: 'Load a video of two parameter into the context',
+            parameters: {
+              type: 'object',
+              properties: {
+                video_id: {
+                  type: 'string',
+                  description: 'Description for parameter: video_id.',
+                },
+                video_url: {
+                  type: 'string',
+                  description: 'Description for parameter: video_url.',
+                },
+              },
+              required: ['video_id', 'video_url'],
+            },
+          },
+        },
+        {
+          type: 'function',
+          function: {
+            name: 'tool_without_parameter',
+            description: 'Load a video without parameter into the context',
+            parameters: {
+              type: 'object',
+              properties: {},
+              required: [],
+            },
+          },
+        },
+      ]);
+    });

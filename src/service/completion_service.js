@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-export class ConversationApi {
-  constructor(baseUrl, xApiToken) {
-    this.client = axios.create({
+export class CompletionService {
+  constructor(baseUrl, xApiToken,  httpClient = null) {
+    this.client = httpClient || axios.create({
       baseURL: baseUrl,
       headers: {
         'Content-Type': 'application/json',

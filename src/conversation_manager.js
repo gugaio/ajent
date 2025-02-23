@@ -1,8 +1,15 @@
-import { ConversationApi } from './index.js';
+import { CompletionService } from './index.js';
 import { AgentToolOrchestrator } from './infra/agent_tool_orchestrator.js';
 import { TriageAgent } from './agent/triage_agent.js';
 import {schemaGenerator} from './tooling/schema_generator.js';
+import Logger from './utils/logger.js';
 
+const logger = new Logger({
+  level: 'info',  // Set logging level
+  prefix: 'ConversationManager',   // Add prefix to all logs
+  enableTimestamp: true,  // Include timestamps
+  enableColors: true,     // Enable colors in Node.js
+});
 
 export class ConversationManager {
   /**
@@ -10,33 +17,34 @@ export class ConversationManager {
    * @param {Object} agent
    */
   constructor(apiUrl, xApiToken, agents, triage_instruction) {
-    this.api = new ConversationApi(apiUrl, xApiToken);
-    this.toolOrchestrator = new AgentToolOrchestrator();
-    this.agents = agents;
-    this.context = {agents: agents, viewer: {}};
+    this._completionService = new CompletionService(apiUrl, xApiToken);
+    this._toolOrchestrator = new AgentToolOrchestrator();
+    this._agents = agents;
+    this._context = {agents: agents, viewer: {}};
     for (const agent of agents) {
-      this.context.agents[agent.id] = agent;
-      agent.context = this.context;
+      this._context.agents[agent.id] = agent;
+      agent.context = this._context;
     }
     if(triage_instruction){
-      this.current_agent = new TriageAgent(this.context, agents, triage_instruction);
+      this.current_agent = new TriageAgent(this._context, agents, triage_instruction);
     }else{
       this.current_agent = agents[0];
     }
-    console.log('Initial agent:', this.current_agent.id);
+    logger.info('Initial agent:', this.current_agent.id);
     this.messages = [];
   }
 
   async processMessage(message) {
     try {
-      console.log('Processing message:', message);
+      logger.info('Processing message:', message);
       this.messages.push({content: message, role: 'user'});
-      this.context.viewer = {};
+      this._context.viewer = {};
       const reponseMessage = await this.processConversation();
       const response = reponseMessage.content;
+      logger.info('Message reply:', response);
       return response;
     } catch (error) {
-      console.error('Message processing failed:', error);
+      logger.error('Message processing failed:', error);
       throw error;
     }
   }
@@ -49,25 +57,16 @@ export class ConversationManager {
   async processConversation() {
     try {
       while(true){
-        let {messages: enrichedMessages, toolSchemas} = this.enrichMessages(this.messages);
-        console.log('Request to Spinal with messages:', enrichedMessages);
-        const response = await this.api.sendMessage(enrichedMessages, toolSchemas);
-        this.messages.push(response);
+        let {enrichedMessages, toolSchemas} = this._enrichMessages(this.messages);
+        const response = await this._sendToCompletionService(enrichedMessages, toolSchemas);
         if(!this.hasToolCalls(response)){
-          console.log('Conversation finished:', response);
-          return response;
+          return response; 
         }
-        console.log('Spinal asked tools:', response);
-        const toolMessages= await this.handleToolResponse(response, enrichedMessages);
-        console.log('Tool messages:', toolMessages);
-        this.messages = [
-          ...this.messages,
-          ...toolMessages
-        ];
+        await this._handleToolCalls(response.tool_calls, enrichedMessages);
       }
       
     } catch (error) {
-      console.error('Conversation processing failed:', error);
+      logger.error('Conversation processing failed:', error);
       throw error;
     }
   }
@@ -77,13 +76,29 @@ export class ConversationManager {
    * @param {Array<Message>} messages
    * @returns {Array<Message>}
    */
-  enrichMessages(messages) {
+  _enrichMessages(messages) {
     const system_instruction = {
       content: this.current_agent.instruction(),
       role: 'system'
     };
     const toolSchemas = schemaGenerator(this.current_agent.tools());
-    return {messages:[system_instruction, ...messages], toolSchemas};
+    return {enrichedMessages:[system_instruction, ...messages], toolSchemas};
+  }
+
+  async _sendToCompletionService(enrichedMessages, toolSchemas) {
+    const response = await this._completionService.sendMessage(enrichedMessages, toolSchemas);
+    this.messages.push(response);
+    return response;
+  }
+
+  async _handleToolCalls(tool_calls) {
+    const {messages, agent} = await this._toolOrchestrator.executeToolCalls(tool_calls, this.current_agent);
+    this.current_agent = agent;
+    logger.debug('Tool response:', messages);
+    this.messages = [
+      ...this.messages,
+      ...messages
+    ];
   }
 
   /**
@@ -103,7 +118,7 @@ export class ConversationManager {
    * @returns {Promise<Message>}
    */
   async handleToolResponse(response, previousMessages) {
-    const {messages, current_agent} = await this.toolOrchestrator.executeToolCalls(response.tool_calls, this.current_agent);
+    const {messages, current_agent} = await this._toolOrchestrator.executeToolCalls(response.tool_calls, this.current_agent);
     this.current_agent = current_agent;
     return messages
   }

@@ -1,4 +1,12 @@
 import { Agent } from '../agent/base_agent.js';
+import Logger from '../utils/logger.js';
+
+const logger = new Logger({
+  level: 'info',  // Set logging level
+  prefix: 'AgentToolOrchestrator',   // Add prefix to all logs
+  enableTimestamp: true,  // Include timestamps
+  enableColors: true,     // Enable colors in Node.js
+});
 
 export class AgentToolOrchestrator {
   /**
@@ -10,26 +18,22 @@ export class AgentToolOrchestrator {
   async executeToolCalls(toolCalls, agent) {
     const toolResults = [];
     let currentAgent = agent;
-
     for (const toolCall of toolCalls) {
       try {
         const result = await this.invokeTool(toolCall, currentAgent);
-        const response = this.handleToolResult(result, toolCall, currentAgent);
-        
+        const response = this._handleToolCallResult(result, toolCall, currentAgent);        
         if (response.agentTransfer) {
           currentAgent = response.agentTransfer;
-        }
-        
+        }        
         toolResults.push(response.message);
       } catch (error) {
         console.error(`Failed to execute tool ${toolCall.function.name}:`, error);
         toolResults.push(this._createErrorResponse(toolCall.id, error.message, currentAgent));
       }
     }
-
     return {
       messages: toolResults,
-      current_agent: currentAgent
+      agent: currentAgent
     };
   }
 
@@ -51,7 +55,7 @@ export class AgentToolOrchestrator {
     }
 
     const result = await toolFunction(...parameters);
-    console.log('Tool executed:', name, result);
+    logger.info('Tool executed:', name, result);
     return result;
   }
 
@@ -59,9 +63,9 @@ export class AgentToolOrchestrator {
    * Handles the result of a tool execution
    * @private
    */
-  handleToolResult(result, toolCall, agent) {
+  _handleToolCallResult(result, toolCall, agent) {
     if (result instanceof Agent) {
-      console.log('Transferred to', result.id);
+      logger.info('Transferred to', result.id);
       return {
         message: this._createToolResponse(
           toolCall.id,
