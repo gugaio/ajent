@@ -9,7 +9,8 @@ export class Squad {
     this._conversationManager = new ConversationManager(apiUrl, apiToken, agents, triageInstruction);
   }
 
-  async send(message) {
-    return await this._conversationManager.processMessage(message);
+  async send(message, streamCallback = null) {
+    return await this._conversationManager.processMessage(message, streamCallback);
   }
+
 }

@@ -34,12 +34,12 @@ export class ConversationManager {
     this.messages = [];
   }
 
-  async processMessage(message) {
+  async processMessage(message, streamCallback) {
     try {
       logger.info('Processing message:', message);
       this.messages.push({content: message, role: 'user'});
       this._context.viewer = {};
-      const reponseMessage = await this.processConversation();
+      const reponseMessage = await this.processConversation(streamCallback);
       const response = reponseMessage.content;
       logger.info('Message reply:', response);
       return response;
@@ -54,15 +54,21 @@ export class ConversationManager {
    * @param {Array<Message>} messages
    * @returns {Promise<Message>}
    */
-  async processConversation() {
+  async processConversation(streamCallback) {
     try {
       while(true){
-        let {enrichedMessages, toolSchemas} = this._enrichMessages(this.messages);
-        const response = await this._sendToCompletionService(enrichedMessages, toolSchemas);
+        let {agent_instruction_message, toolSchemas} = this._getCurrentAgentInstructionAndTools();
+        let messagesWithInstruction = [agent_instruction_message, ...this.messages];
+        let response;
+        if(streamCallback){
+          response =  await this._streamToCompletionService(messagesWithInstruction, toolSchemas, streamCallback);
+        }else{
+          response =  await this._sendToCompletionService(messagesWithInstruction, toolSchemas);
+        }
         if(!this.hasToolCalls(response)){
           return response; 
         }
-        await this._handleToolCalls(response.tool_calls, enrichedMessages);
+        await this._handleToolCalls(response.tool_calls);
       }
       
     } catch (error) {
@@ -71,24 +77,55 @@ export class ConversationManager {
     }
   }
 
-  /**
-   * @private
-   * @param {Array<Message>} messages
-   * @returns {Array<Message>}
-   */
-  _enrichMessages(messages) {
-    const system_instruction = {
+  _getCurrentAgentInstructionAndTools() {
+    const agent_instruction_message = {
       content: this.current_agent.instruction(),
       role: 'system'
     };
     const toolSchemas = schemaGenerator(this.current_agent.tools());
-    return {enrichedMessages:[system_instruction, ...messages], toolSchemas};
+    return {agent_instruction_message, toolSchemas};
   }
 
   async _sendToCompletionService(enrichedMessages, toolSchemas) {
     const response = await this._completionService.sendMessage(enrichedMessages, toolSchemas);
     this.messages.push(response);
     return response;
+  }
+
+  async _streamToCompletionService(enrichedMessages, toolSchemas, streamCallback) {
+    logger.info('Streaming messages to completion service');
+    let messageResponse = {
+      content: '',
+      role: 'assistant'
+    };
+
+    const toolCallsMap = new Map();
+    let lastToolCallId = '';
+
+    const response = await this._completionService.streamMessage(enrichedMessages, toolSchemas, {
+      onContent: streamCallback,
+      onFinish: ({ content, toolCalls, finishReason }) => {
+        console.log('Stream finished', { finishReason });
+        console.log('Final content:', content);
+        console.log('Final tool calls:', toolCalls);
+        
+        if (content) {
+          messageResponse.content = content;
+        }
+        
+        // Use the final tool calls if provided
+        if (toolCalls && toolCalls.length > 0) {
+          messageResponse.tool_calls = toolCalls;
+        }
+      },
+      onError: (error) => {
+        logger.error('Stream error:', error);
+        throw error;
+      }
+    });
+    console.log('Response:', messageResponse);
+    this.messages.push(messageResponse);
+    return messageResponse;
   }
 
   async _handleToolCalls(tool_calls) {
