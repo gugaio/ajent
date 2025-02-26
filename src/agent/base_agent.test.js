@@ -1,5 +1,5 @@
 import { Agent } from './base_agent.js';
-import Tool from '../tooling/tool.js';
+import { Tool } from '../tooling/tool.js';
 
 
 describe('Agent class', () => {

@@ -1,4 +1,4 @@
-import Tool from '../tooling/tool.js';
+import { Tool } from '../tooling/tool.js';
 
 export class Agent {
   constructor(id, task, tools = [], context = {}) {

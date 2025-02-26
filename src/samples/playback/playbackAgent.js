@@ -1,5 +1,5 @@
 import { Agent } from '../../agent/base_agent.js';
-import Tool from '../../tooling/tool.js';
+import { Tool } from '../../tooling/tool.js';
 
 const ID = "playback_agent"
 const TASK = "Analyze playback api video information"

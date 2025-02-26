@@ -1,4 +1,4 @@
-export default class Tool {
+export  class Tool {
   constructor(id, description, tool_function) {
     this.id = id;
     this.description = description;

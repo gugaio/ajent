@@ -1,5 +1,5 @@
 import {toolSchemaGenerator, schemaGenerator} from './schema_generator.js';
-import Tool from './tool.js';
+import { Tool } from './tool.js';
 
 
 const tool_with_one_parameter = (video_id) => {
