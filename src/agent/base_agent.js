@@ -5,7 +5,7 @@ export class Agent {
     this.id = id
     this.task = task
     this.context = context
-    this._tools = tools.concat([new Tool('transfer_to_agent', 'Transfer to an agent', this.transfer_to_agent)])
+    this._tools = tools.concat([new Tool('transfer_to_agent', 'Transfer to an agent ' + id +'. The tool function expect the id as string', this.transfer_to_agent)])
   }
 
   instruction = () => {
