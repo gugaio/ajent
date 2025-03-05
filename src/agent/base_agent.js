@@ -21,6 +21,9 @@ export class Agent {
   }
 
   transfer_to_agent (id){
+    if(!this.context["agents"][id]) {
+      return `Agent with id ${id} not found in the context.`
+    }
     const new_agent = this.context["agents"][id]
     return new_agent
   }
