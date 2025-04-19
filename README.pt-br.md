@@ -20,58 +20,29 @@ npm install ajent
 yarn add ajent
 ```
 
-## Configuração Básica
-
-1. Primeiro, configure o Babel para suportar decorators. Crie ou atualize seu `babel.config.js`:
-
-```javascript
-module.exports = {
-  presets: ['@babel/preset-env'],
-  plugins: [
-    ['@babel/plugin-proposal-decorators', { version: '2023-05' }],
-  ],
-};
-```
-
-2. Instale as dependências necessárias:
-
-```bash
-npm install @babel/core @babel/preset-env @babel/plugin-proposal-decorators
-# If using React
-npm install @babel/preset-react
-```
-
 ## Uso básico
 
 ### Criando um Agente Personalizado
 
 ```javascript
 import { Agent } from 'ajent';
-import { tool } from 'ajent';
+import { Tool } from '../../tooling/tool.js';
 
 class MyCustomAgent extends Agent {
     constructor() {
         super("my_agent", "Handle specific tasks");
+        this.addTool(new Tool('myTool1', "Descrição da tool 1", this.myTool1)); 
     }
 
-    instructions = () => {
-        return {
-            instruction: "Escreve aqui suas instructions...",
-            tools: [this.myTool1, this.myTool2]
-        }
+    instruction = () => {
+        return "Escreve aqui suas instructions...";
     }
 
-    @tool("Descrição da tool 1")
-    myTool1(param1) {
+    async myTool1(param1) {
         // Tool implementation
         return "Result";
     }
 
-    @tool("Descrição da tool 2")
-    myTool2(param1, param2) {
-        // Tool implementation
-        return "Result";
-    }
 }
 ```
 
@@ -110,25 +81,6 @@ Como alternativa, você também pode criar seu próprio serviço proxy para inte
 
 
 ## Integração com React
-
-### Setup para projetos React
-
-1. Instale dependências adicionais:
-
-```bash
-npm install @babel/preset-react
-```
-
-2. Atualize seu `babel.config.js`:
-
-```javascript
-module.exports = {
-    presets: ['@babel/preset-env', '@babel/preset-react'],
-    plugins: [
-        ['@babel/plugin-proposal-decorators', { version: '2023-05' }]
-    ]
-};
-```
 
 ### Examplo de uso com um React Component
 
@@ -192,23 +144,6 @@ new Squad({
     apiToken,         // API token for authentication
     triageInstruction // Optional triage instructions
 })
-```
-
-### Agent
-
-```javascript
-class Agent {
-    constructor(id, task)
-    instructions()
-    toolSchemas(tools)
-    mapTools()
-}
-```
-
-### Tool Decorator
-
-```javascript
-@tool(description)
 ```
 
 ## Best Practices
