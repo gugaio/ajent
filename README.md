@@ -21,55 +21,25 @@ npm install ajent
 yarn add ajent
 ```
 
-## Basic Setup
-
-1. First, configure Babel to support decorators. Create or update your `babel.config.js`:
-
-```javascript
-module.exports = {
-  presets: ['@babel/preset-env'],
-  plugins: [
-    ['@babel/plugin-proposal-decorators', { version: '2023-05' }],
-  ],
-};
-```
-
-2. Install required dependencies:
-
-```bash
-npm install @babel/core @babel/preset-env @babel/plugin-proposal-decorators
-# If using React
-npm install @babel/preset-react
-```
-
 ## Basic Usage
 
 ### Creating a Custom Agent
 
 ```javascript
 import { Agent } from 'ajent';
-import { tool } from 'ajent';
+import { Tool } from '../../tooling/tool.js';
 
 class MyCustomAgent extends Agent {
     constructor() {
         super("my_agent", "Handle specific tasks");
+        this.addTool(new Tool('myTool1', "Description of tool 1", this.myTool1)); 
     }
 
-    instructions = () => {
-        return {
-            instruction: "Your custom instructions here",
-            tools: [this.myTool1, this.myTool2]
-        }
+    instruction = () => {
+        return "Your custom instructions here";
     }
 
-    @tool("Description of tool 1")
     myTool1(param1) {
-        // Tool implementation
-        return "Result";
-    }
-
-    @tool("Description of tool 2")
-    myTool2(param1, param2) {
         // Tool implementation
         return "Result";
     }
@@ -107,25 +77,6 @@ Warning: Using the llmToken directly on the client side is not secure and should
 Alternatively, you can build your own proxy service to interact with the LLM. To facilitate this implementation, we provide an open-source library at: https://github.com/gugaio/ajent-py-server-lib.
 
 ## React Integration
-
-### Setup for React Projects
-
-1. Install additional dependencies:
-
-```bash
-npm install @babel/preset-react
-```
-
-2. Update your `babel.config.js`:
-
-```javascript
-module.exports = {
-    presets: ['@babel/preset-env', '@babel/preset-react'],
-    plugins: [
-        ['@babel/plugin-proposal-decorators', { version: '2023-05' }]
-    ]
-};
-```
 
 ### Example React Component
 
