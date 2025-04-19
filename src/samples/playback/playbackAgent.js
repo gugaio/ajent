@@ -35,7 +35,7 @@ export class PlaybackAgent extends Agent {
             id: video_id,
             title: "Gladiator",
             description: "Gladiator is a 2000 epic historical action drama film directed by Ridley Scott and written by David Franzoni, John Logan, and William Nicholson.",
-            duration: "5 secondsn",
+            duration: "5 seconds",
             tags: ["continuation", "denzel"],
             categories: ["war", "war"]
         }
