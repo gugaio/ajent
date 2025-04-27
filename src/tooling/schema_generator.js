@@ -44,6 +44,10 @@ function _getFunctionParameters(func) {
   const arrowMatch = funcStr.match(/^(?:\(([^)]*)\)|([^=]*))\s*=>/);
   if (arrowMatch) return arrowMatch[1] || arrowMatch[2] || '';
 
+  const genericMatch = funcStr.match(/^(async\s+)?(\w+)\s*\(([^)]*)\)/);
+  if (genericMatch) return genericMatch[3] || '';
+
+
   return ''; // Fallback if no match
 }
  

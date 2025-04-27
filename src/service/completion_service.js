@@ -29,6 +29,37 @@ export class CompletionService {
     }
   }
 
+  async sendAudioMessage(audioBlob, messages, tools) {
+    try {
+      const audioClient = axios.create({
+        baseURL: this.baseUrl,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'x-api-token': this.xApiToken
+        }
+      });
+      
+      const formData = new FormData();
+      formData.append('audio', audioBlob);
+      formData.append('messages', messages);
+      if (tools && tools.length > 0) {
+        formData.append('tools', tools);
+      }
+
+      const response = await audioClient.post('/audio_message', formData, {});
+      const textResponseHeader = response.headers['x-text-response'];
+      const textResponse = textResponseHeader ? JSON.parse(textResponseHeader) : null;
+
+      return {
+        audioBlob: response.data,  // The audio blob response
+        textResponse: textResponse, // The JSON text response
+        audioUrl: "localhost:3000" // Convenience URL for playing the audio
+      };
+    } catch (error) {
+      throw new Error(`Failed to send message: ${error.message}`);
+    }
+  }
+
   async streamMessage(messages, tools, {
     onContent = () => {},
     onToolCall = () => {},
