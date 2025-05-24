@@ -5,7 +5,10 @@ export class Agent {
     this.id = id
     this.task = task
     this.context = context
-    this._tools = tools.concat([new Tool('transfer_to_agent', 'Transfer to an agent ' + id +'. The tool function expect the id as string', this.transfer_to_agent)])
+    this._tools = tools.concat([
+      new Tool('transfer_to_agent', 'Transfer to an agent ' + id + '. The tool function expects the id as string', this.transfer_to_agent),
+      new Tool('end', 'End the reasoning loop and return the final answer to the user.', this.end_loop)
+    ])
   }
 
   instruction = () => {
@@ -20,12 +23,21 @@ export class Agent {
     this._tools.push(tool)
   }
 
-  transfer_to_agent (id){
-    if(!this.context["agents"][id]) {
+
+  transfer_to_agent(id) {
+    if (!this.context["agents"][id]) {
       return `Agent with id ${id} not found in the context.`
     }
     const new_agent = this.context["agents"][id]
     return new_agent
+  }
+
+  /**
+   * Tool to signal the end of the reasoning loop.
+   * @returns {string}
+   */
+  end_loop() {
+    return 'End of reasoning. Returning final answer to user.';
   }
 
   mapTools = () =>  {

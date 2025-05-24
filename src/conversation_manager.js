@@ -36,12 +36,12 @@ export class ConversationManager {
 
   async processMessage(message, streamCallback) {
     try {
-      logger.info('Processing message:', message);
+      logger.info('Processing user message:', message);
       this.messages.push({content: message, role: 'user'});
       this._context.viewer = {};
-      const reponseMessage = await this.processConversation(streamCallback);
-      const response = reponseMessage.content;
-      logger.info('Message reply:', response);
+      const responseMessage = await this.processConversation(streamCallback);
+      const response = responseMessage.content;
+      logger.info('Ajent reply to user:', response);
       return response;
     } catch (error) {
       logger.error('Message processing failed:', error);
@@ -56,33 +56,49 @@ export class ConversationManager {
    */
   async processConversation(streamCallback) {
     try {
-      while(true){
-        let {agent_instruction_message, toolSchemas} = this._getCurrentAgentInstructionAndTools();
+      while (true) {
+        let { agent_instruction_message, toolSchemas } = this._getCurrentAgentInstructionAndTools();
         let messagesWithInstruction = [agent_instruction_message, ...this.messages];
         let response;
-        if(streamCallback){
-          response =  await this._streamToCompletionService(messagesWithInstruction, toolSchemas, streamCallback);
-        }else{
-          response =  await this._sendToCompletionService(messagesWithInstruction, toolSchemas);
+        if (streamCallback) {
+          response = await this._streamToCompletionService(messagesWithInstruction, toolSchemas, streamCallback);
+        } else {
+          response = await this._sendToCompletionService(messagesWithInstruction, toolSchemas);
         }
-        if(!this.hasToolCalls(response)){
-          return response; 
+        if (this.hasEndToolCall(response)) {
+          return response;
         }
-        await this._handleToolCalls(response.tool_calls);
+        if (this.hasToolCalls(response)) {
+          await this._handleToolCalls(response.tool_calls);
+        } else {
+          // No tool calls and not an end tool, keep reasoning (loop)
+          continue;
+        }
       }
-      
     } catch (error) {
       logger.error('Conversation processing failed:', error);
       throw error;
     }
   }
+  /**
+   * Checks if the message contains a tool call of type "end"
+   * @param {Message} message
+   * @returns {boolean}
+   */
+  hasEndToolCall(message) {
+    if (!message.tool_calls || !Array.isArray(message.tool_calls)) return false;
+    return message.tool_calls.some(tc => tc.function && (tc.function.name === 'end_conversation' || tc.function.type === 'end_conversation'));
+  }
 
   _getCurrentAgentInstructionAndTools() {
+    logger.debug('Current agent: ', this.current_agent.id)
+    logger.debug('Current agent instruction: ', this.current_agent.instruction())
     const agent_instruction_message = {
       content: this.current_agent.instruction(),
       role: 'system'
     };
     const toolSchemas = schemaGenerator(this.current_agent.tools());
+    logger.debug('Current agent tools: ', toolSchemas)
     return {agent_instruction_message, toolSchemas};
   }
 
@@ -99,10 +115,7 @@ export class ConversationManager {
       role: 'assistant'
     };
 
-    const toolCallsMap = new Map();
-    let lastToolCallId = '';
-
-    const response = await this._completionService.streamMessage(enrichedMessages, toolSchemas, {
+    await this._completionService.streamMessage(enrichedMessages, toolSchemas, {
       onContent: streamCallback,
       onFinish: ({ content, toolCalls, finishReason }) => {
         console.log('Stream finished', { finishReason });
