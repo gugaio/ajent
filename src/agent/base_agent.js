@@ -7,8 +7,12 @@ export class Agent {
     this.context = context
     this._tools = tools.concat([
       new Tool('transfer_to_agent', 'Transfer to an agent ' + id + '. The tool function expects the id as string', this.transfer_to_agent),
-      new Tool('end', 'End the reasoning loop and return the final answer to the user.', this.end_loop)
+      new Tool('final_answer', 'Use this tool to indicate that the agent has reached the end of its reasoning loop and is ready to provide a final response.', this.final_answer)
     ])
+  }
+
+  base_instruction = () => {
+    return `Use the final_answer tool to indicate that the agent has reached the end of its reasoning loop and is ready to provide a final response. This can happen either because the task is complete and the agent has a definitive answer, or because the agent requires additional input from the user before proceeding. Remenber to use the final_answer tool to ask user for more information.`
   }
 
   instruction = () => {
@@ -36,8 +40,9 @@ export class Agent {
    * Tool to signal the end of the reasoning loop.
    * @returns {string}
    */
-  end_loop() {
-    return 'End of reasoning. Returning final answer to user.';
+  final_answer(answer) {
+    console.log('Final answer:', answer)
+    return answer
   }
 
   mapTools = () =>  {

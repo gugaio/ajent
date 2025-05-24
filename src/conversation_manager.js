@@ -16,11 +16,12 @@ export class ConversationManager {
    * @param {string} apiUrl
    * @param {Object} agent
    */
-  constructor(apiUrl, xApiToken, agents, triage_instruction) {
+  constructor(apiUrl, xApiToken, agents, triage_instruction, maxSteps) {
     this._completionService = new CompletionService(apiUrl, xApiToken);
     this._toolOrchestrator = new AgentToolOrchestrator();
     this._agents = agents;
     this._context = {agents: agents, viewer: {}};
+    this._maxSteps = maxSteps;
     for (const agent of agents) {
       this._context.agents[agent.id] = agent;
       agent.context = this._context;
@@ -55,8 +56,10 @@ export class ConversationManager {
    * @returns {Promise<Message>}
    */
   async processConversation(streamCallback) {
+    let currentStep = 0;
     try {
-      while (true) {
+      while (currentStep <= this._maxSteps) {
+        currentStep++;
         let { agent_instruction_message, toolSchemas } = this._getCurrentAgentInstructionAndTools();
         let messagesWithInstruction = [agent_instruction_message, ...this.messages];
         let response;
@@ -66,7 +69,8 @@ export class ConversationManager {
           response = await this._sendToCompletionService(messagesWithInstruction, toolSchemas);
         }
         if (this.hasEndToolCall(response)) {
-          return response;
+          await this._handleToolCalls(response.tool_calls);
+          return this.messages[this.messages.length - 1];
         }
         if (this.hasToolCalls(response)) {
           await this._handleToolCalls(response.tool_calls);
@@ -75,6 +79,9 @@ export class ConversationManager {
           continue;
         }
       }
+      logger.info('Max steps reached, stopping conversation.');
+      const answer = { content: 'Max steps reached without a final answer.' };
+      return answer;
     } catch (error) {
       logger.error('Conversation processing failed:', error);
       throw error;
@@ -87,14 +94,14 @@ export class ConversationManager {
    */
   hasEndToolCall(message) {
     if (!message.tool_calls || !Array.isArray(message.tool_calls)) return false;
-    return message.tool_calls.some(tc => tc.function && (tc.function.name === 'end_conversation' || tc.function.type === 'end_conversation'));
+    return message.tool_calls.some(tc => tc.function && (tc.function.name === 'final_answer' || tc.function.type === 'final_answer'));
   }
 
   _getCurrentAgentInstructionAndTools() {
     logger.debug('Current agent: ', this.current_agent.id)
     logger.debug('Current agent instruction: ', this.current_agent.instruction())
     const agent_instruction_message = {
-      content: this.current_agent.instruction(),
+      content:  this.current_agent.instruction() + '\n' + this.current_agent.base_instruction(),
       role: 'system'
     };
     const toolSchemas = schemaGenerator(this.current_agent.tools());
