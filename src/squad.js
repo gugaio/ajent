@@ -9,8 +9,15 @@ export class Squad {
     this._conversationManager = new ConversationManager(apiUrl, apiToken, agents, maxSteps);
   }
 
-  async send(message, streamCallback = null) {
-    return await this._conversationManager.processMessage(message, streamCallback);
+  set streamCallback(callback) {
+    if (typeof callback !== 'function') {
+      throw new Error('streamCallback must be a function');
+    }
+    this._conversationManager.streamCallback = callback;
+  }
+
+  async send(message, createPlanningTask = false) {
+    return await this._conversationManager.processMessage(message, createPlanningTask);
   }
 
 }

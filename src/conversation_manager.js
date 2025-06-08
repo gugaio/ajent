@@ -16,30 +16,35 @@ export class ConversationManager {
    * @param {string} apiUrl
    * @param {Object} agent
    */
-  constructor(apiUrl, xApiToken, agents, maxSteps, skip_planner = false) {
+  constructor(apiUrl, xApiToken, agents, maxSteps) {
     this._completionService = new CompletionService(apiUrl, xApiToken);
     this._toolOrchestrator = new AgentToolOrchestrator();
     this._agents = agents;
     this._context = {agents: agents, viewer: {}};
     this._maxSteps = maxSteps;
-    this._skipPlanner = skip_planner;
     for (const agent of agents) {
       this._context.agents[agent.id] = agent;
       agent.context = this._context;
     }
     this.current_agent = agents[0];
     this.messages = [];
+    this.streamCallback = null;
   }
 
-  async processMessage(message, streamCallback) {
+  set streamCallback(callback) {
+    this._streamCallback = callback;
+  }
+
+  async processMessage(message, createPlanningTask) {
     try {
       logger.info('Processing user message:', message);
-      if(this.messages.length === 0 && !this._skipPlanner) {
-       this.current_agent = new PlannerAgent(this._context, message);
+      if(createPlanningTask) {
+       this.planner_agent = this.planner_agent || new PlannerAgent(this._context, message);
+       this.current_agent = this.planner_agent;
       }
       this.messages.push({content: message, role: 'user'});
       this._context.viewer = {};
-      const responseMessage = await this.processConversation(streamCallback);
+      const responseMessage = await this.processConversation();
       const response = responseMessage.content;
       logger.info('Ajent reply to user:', response);
       return response;
@@ -54,7 +59,7 @@ export class ConversationManager {
    * @param {Array<Message>} messages
    * @returns {Promise<Message>}
    */
-  async processConversation(streamCallback) {
+  async processConversation() {
     let currentStep = 0;
     try {
       while (currentStep <= this._maxSteps) {
@@ -62,20 +67,13 @@ export class ConversationManager {
         let { agent_instruction_message, toolSchemas } = this._getCurrentAgentInstructionAndTools();
         let messagesWithInstruction = [...this.messages, agent_instruction_message];
         let response;
-        if (streamCallback) {
-          response = await this._streamToCompletionService(messagesWithInstruction, toolSchemas, streamCallback);
+        if (this._streamCallback) {
+          response = await this._streamToCompletionService(messagesWithInstruction, toolSchemas, this._streamCallback);
         } else {
           response = await this._sendToCompletionService(messagesWithInstruction, toolSchemas);
         }
         if(this.current_agent.id === 'PlannerAgent') {
-          logger.info('Initial planning created:', response.content);
-          /*this.current_agent = this._agents[0]
-          this.messages.push({
-            content: `Planning completed. Now switching to agent ${this.current_agent.id}.`,
-            role: 'system'
-          });
-          
-          continue*/
+          logger.info('Task planning created:', response.content);
         }    
         if (this.hasEndToolCall(response)) {
           await this._handleToolCalls(response.tool_calls);
