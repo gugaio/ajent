@@ -3,27 +3,27 @@ const { NODE_ENV } = process.env;
 const isProduction = NODE_ENV === 'production';
 
 export default [{
-  entry: './src/index.js', // Entry point
+  entry: './src/index.js', 
   output: {
-    filename: 'ajent.esm.js',  // Output file
+    filename: 'ajent.esm.js',  
     path: new URL('./dist', import.meta.url).pathname,
     library: {
-      type: "module", // Specify ESM
+      type: "module",
     },
     module: true
   },
   experiments: {
-    outputModule: true, // Enable module output
+    outputModule: true,
   },
   module: {
     rules: [
       {
-        test: /\.js$/, // Apply Babel to all .js files
-        exclude: /node_modules/, // Don't apply Babel to node_modules
+        test: /\.js$/,
+        exclude: /node_modules/,
         use: {
           loader: 'babel-loader',
           options: {
-            presets: ['@babel/preset-env'], // Use Babel's preset-env for modern JS
+            presets: ['@babel/preset-env'],
           },
         },
       },

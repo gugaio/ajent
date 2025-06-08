@@ -12,7 +12,16 @@ export class Agent {
   }
 
   base_instruction = () => {
-    return `Use the final_answer tool to indicate that the agent has reached the end of its reasoning loop and is ready to provide a final response. This can happen either because the task is complete and the agent has a definitive answer, or because the agent requires additional input from the user before proceeding. Remenber to use the final_answer tool to ask user for more information.`
+    return `You are an expert assistant who can solve any task using tool calls. 
+    You will be given a task to solve as best you can.
+    To do so, you have been given access to some tools.
+    You can use the result of the previous tool as input for the next tool.
+    Never re-do a tool call that you previously did with the exact same parameters.
+    # Tool Call Guidelines
+    - Use the transfer_to_agent tool to transfer the user to another agent.
+    - Use the final_answer tool to indicate that the agent has reached the end of its reasoning loop and is ready to provide a final response.
+    - Use the final_answer tool to ask the user for more information if needed.
+    Use the final_answer tool to indicate that the agent has reached the end of its reasoning loop and is ready to provide a final response. This can happen either because the task is complete and the agent has a definitive answer, or because the agent requires additional input from the user before proceeding. Remember to use the final_answer tool to ask user for more information.`
   }
 
   instruction = () => {

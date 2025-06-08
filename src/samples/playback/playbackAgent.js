@@ -8,16 +8,13 @@ export class PlaybackAgent extends Agent {
     constructor() {
         super(ID, TASK);
         this.addTool(new Tool('load_video_to_context', "Load a video into the context.", this.load_video_to_context));
-        this.addTool(new Tool('get_video_info', "Get video info", this.get_video_info));        
+        this.addTool(new Tool('get_video_info', "Get video info of a video in the context. If not loaded yet, use tool load_video_to_context.", this.get_video_info));        
     }
 
     instruction = () => {
         if(!this.context["video"]) {
             const instruction = `No video loaded into context.
-            You need load a video using the load_video_to_context tool.
-            User must provide the video id.
-            Ask the user for the video id if not provided yet.
-            Then call the tool with the video id as argument.`;
+            You need load a video using the load_video_to_context tool, providing the video id as argument.`;
             return instruction;
         }
 

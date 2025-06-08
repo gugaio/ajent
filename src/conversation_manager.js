@@ -1,6 +1,6 @@
 import { CompletionService } from './index.js';
 import { AgentToolOrchestrator } from './infra/agent_tool_orchestrator.js';
-import { TriageAgent } from './agent/triage_agent.js';
+import { PlannerAgent } from './agent/planner_agent.js';
 import {schemaGenerator} from './tooling/schema_generator.js';
 import Logger from './utils/logger.js';
 
@@ -16,28 +16,27 @@ export class ConversationManager {
    * @param {string} apiUrl
    * @param {Object} agent
    */
-  constructor(apiUrl, xApiToken, agents, triage_instruction, maxSteps) {
+  constructor(apiUrl, xApiToken, agents, maxSteps, skip_planner = false) {
     this._completionService = new CompletionService(apiUrl, xApiToken);
     this._toolOrchestrator = new AgentToolOrchestrator();
     this._agents = agents;
     this._context = {agents: agents, viewer: {}};
     this._maxSteps = maxSteps;
+    this._skipPlanner = skip_planner;
     for (const agent of agents) {
       this._context.agents[agent.id] = agent;
       agent.context = this._context;
     }
-    if(triage_instruction){
-      this.current_agent = new TriageAgent(this._context, agents, triage_instruction);
-    }else{
-      this.current_agent = agents[0];
-    }
-    logger.info('Initial agent:', this.current_agent.id);
+    this.current_agent = agents[0];
     this.messages = [];
   }
 
   async processMessage(message, streamCallback) {
     try {
       logger.info('Processing user message:', message);
+      if(this.messages.length === 0 && !this._skipPlanner) {
+       this.current_agent = new PlannerAgent(this._context, message);
+      }
       this.messages.push({content: message, role: 'user'});
       this._context.viewer = {};
       const responseMessage = await this.processConversation(streamCallback);
@@ -61,13 +60,23 @@ export class ConversationManager {
       while (currentStep <= this._maxSteps) {
         currentStep++;
         let { agent_instruction_message, toolSchemas } = this._getCurrentAgentInstructionAndTools();
-        let messagesWithInstruction = [agent_instruction_message, ...this.messages];
+        let messagesWithInstruction = [...this.messages, agent_instruction_message];
         let response;
         if (streamCallback) {
           response = await this._streamToCompletionService(messagesWithInstruction, toolSchemas, streamCallback);
         } else {
           response = await this._sendToCompletionService(messagesWithInstruction, toolSchemas);
         }
+        if(this.current_agent.id === 'PlannerAgent') {
+          logger.info('Initial planning created:', response.content);
+          /*this.current_agent = this._agents[0]
+          this.messages.push({
+            content: `Planning completed. Now switching to agent ${this.current_agent.id}.`,
+            role: 'system'
+          });
+          
+          continue*/
+        }    
         if (this.hasEndToolCall(response)) {
           await this._handleToolCalls(response.tool_calls);
           return this.messages[this.messages.length - 1];
