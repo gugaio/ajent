@@ -7,27 +7,25 @@ const TASK = "Analyze playback api video information"
 export class PlaybackAgent extends Agent {
     constructor() {
         super(ID, TASK);
-        this.addTool(new Tool('load_video_to_context', "Load a video into the context.", this.load_video_to_context));
-        this.addTool(new Tool('get_video_info', "Get video info of a video in the context. If not loaded yet, use tool load_video_to_context.", this.get_video_info));        
+           this.addTool(new Tool('get_video_info', "Get video info of the video. You must provide the video id as parameter", this.get_video_info));        
     }
 
     instruction = () => {
         if(!this.context["video"]) {
             const instruction = `No video loaded into context.
-            You need load a video using the load_video_to_context tool, providing the video id as argument.`;
+            You need load a video using the get_video_info tool, providing the video id as argument.`;
             return instruction;
         }
 
-        const video_available_fields = this._get_video_fields();
+        const video_info_str = JSON.stringify(this.context["video"], null, 2);
+
         const instruction = `The video loaded into context is ${this.context["video"]["title"]}.
-        You can get the video info using the get_video_info tool.
-        The tool requires a list of fields to retrieve, the fields must be a string separated by commas.
-        The available fields are ${video_available_fields}.
-        Provide the fields based on the user request.`;
+        Complete info ${video_info_str}.`;
         return instruction;
     }
 
-    async load_video_to_context(video_id) {
+
+    async get_video_info(video_id) {
         this.context["video"] = {
             id: video_id,
             title: "Gladiator",
@@ -36,22 +34,7 @@ export class PlaybackAgent extends Agent {
             tags: ["continuation", "denzel"],
             categories: ["war", "war"]
         }
-        return `Video ${video_id} loaded to context. The available fields are ${this._get_video_fields()}`;
-    }
-
-    async get_video_info(fields) {
-        const video = this.context["video"];
-        const requested_fields = fields.split(",");
-        const available_fields = this._get_video_fields().split(",");
-        const invalid_fields = requested_fields.filter(field => !available_fields.includes(field));
-        if(invalid_fields.length > 0) {
-            return `The fields ${invalid_fields} are not available. Please ask for available fields.`;
-        }
-        const video_info = requested_fields.reduce((acc, field) => {
-            acc[field] = video[field];
-            return acc;
-        }, {});
-        const video_info_str = JSON.stringify(video_info, null, 2);
+        const video_info_str = JSON.stringify(this.context["video"], null, 2);
         return video_info_str;
     }
 

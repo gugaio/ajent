@@ -35,16 +35,17 @@ export class ConversationManager {
     this._streamCallback = callback;
   }
 
-  async processMessage(message, createPlanningTask) {
+  async processMessage(message, options) {
     try {
       logger.info('Processing user message:', message);
-      if(createPlanningTask) {
+      if(options.createPlanningTask) {
+       logger.info('Creating planning task for message:', message);
        this.planner_agent = this.planner_agent || new PlannerAgent(this._context, message);
        this.current_agent = this.planner_agent;
       }
       this.messages.push({content: message, role: 'user'});
       this._context.viewer = {};
-      const responseMessage = await this.processConversation();
+      const responseMessage = await this.processConversation(options);
       const response = responseMessage.content;
       logger.info('Ajent reply to user:', response);
       return response;
@@ -59,17 +60,39 @@ export class ConversationManager {
    * @param {Array<Message>} messages
    * @returns {Promise<Message>}
    */
-  async processConversation() {
+  async processConversation({streamContentCallback, streamThinkingCallback}) {
     let currentStep = 0;
+    let streamCallbackManager  = {
+      onContent: streamContentCallback,
+      onThinking: streamThinkingCallback,
+      onStreamCallback: (content) => {
+        //console.log('<stream>', this.current_agent.id, content);
+        if (this.current_agent.id  === 'PlannerAgent') {
+          if (streamThinkingCallback) {
+            console.log('<stream-thinking>', this.current_agent.id, content);
+            streamThinkingCallback(content);
+          }
+        } else {
+          if( streamContentCallback) {
+            console.log('<stream-content>', this.current_agent.id, content);
+            streamContentCallback(content);
+          }else{
+            console.log('<stream> problema', this.current_agent.id, content);
+          }
+        }
+      }
+    }
     try {
       while (currentStep <= this._maxSteps) {
         currentStep++;
         let { agent_instruction_message, toolSchemas } = this._getCurrentAgentInstructionAndTools();
         let messagesWithInstruction = [...this.messages, agent_instruction_message];
         let response;
-        if (this._streamCallback) {
-          response = await this._streamToCompletionService(messagesWithInstruction, toolSchemas, this._streamCallback);
+        if (streamContentCallback) {
+          console.log('Streaming messages with instruction:', agent_instruction_message.content);
+          response = await this._streamToCompletionService(messagesWithInstruction, toolSchemas, streamCallbackManager.onStreamCallback);
         } else {
+          console.log('Sending messages with instruction:', agent_instruction_message.content);
           response = await this._sendToCompletionService(messagesWithInstruction, toolSchemas);
         }
         if(this.current_agent.id === 'PlannerAgent') {
@@ -124,35 +147,45 @@ export class ConversationManager {
 
   async _streamToCompletionService(enrichedMessages, toolSchemas, streamCallback) {
     logger.info('Streaming messages to completion service');
-    let messageResponse = {
+    
+    const messageResponse = {
       content: '',
       role: 'assistant'
     };
-
-    await this._completionService.streamMessage(enrichedMessages, toolSchemas, {
-      onContent: streamCallback,
-      onFinish: ({ content, toolCalls, finishReason }) => {
-        console.log('Stream finished', { finishReason });
-        console.log('Final content:', content);
-        console.log('Final tool calls:', toolCalls);
-        
-        if (content) {
-          messageResponse.content = content;
-        }
-        
-        // Use the final tool calls if provided
-        if (toolCalls && toolCalls.length > 0) {
-          messageResponse.tool_calls = toolCalls;
-        }
-      },
-      onError: (error) => {
-        logger.error('Stream error:', error);
-        throw error;
+  
+    try {
+      await this._completionService.streamMessage(enrichedMessages, toolSchemas, {
+        onContent: streamCallback,
+        onFinish: this._handleStreamFinish(messageResponse),
+        onError: this._handleStreamError
+      });
+  
+      logger.debug('Stream completed successfully', { messageResponse });
+      this.messages.push(messageResponse);
+      return messageResponse;
+    } catch (error) {
+      logger.error('Failed to stream to completion service', { error: error.message });
+      throw error;
+    }
+  }
+  
+  _handleStreamFinish(messageResponse) {
+    return ({ content, toolCalls, finishReason }) => {
+      logger.debug('Stream finished', { finishReason, hasContent: !!content, toolCallsCount: toolCalls?.length || 0 });
+      
+      if (content) {
+        messageResponse.content = content;
       }
-    });
-    console.log('Response:', messageResponse);
-    this.messages.push(messageResponse);
-    return messageResponse;
+      
+      if (toolCalls?.length > 0) {
+        messageResponse.tool_calls = toolCalls;
+      }
+    };
+  }
+  
+  _handleStreamError(error) {
+    logger.error('Stream error occurred', { error: error.message, stack: error.stack });
+    throw error;
   }
 
   async _handleToolCalls(tool_calls) {

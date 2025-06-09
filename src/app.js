@@ -17,26 +17,27 @@ if(!ajentApiToken || ajentApiToken === '') {
 let squadParams = {
     agents: agents,
     apiToken: ajentApiToken,
-    model: 'gpt-4o-mini',
-    triageInstruction: initial_instruction,
+    model: 'gpt-4.1'
   }
 
 const squad = new Squad(squadParams);
+
+const streamCallback = (content) => {
+    console.log('Stream message:', content);
+};
+
+const streamThinkCallback = (content) => {
+  console.log('Stream think:', content);
+};
 
 let message = null;
 
 
 console.log('Starting conversation manager');
-message = await squad.send('I want to analyse the playback video api', (content) => {
-  console.log('Stream message:', content);
-});
+message = await squad.send('I want to analyse the playback video api', {createPlanningTask:true, streamContentCallback:streamCallback, streamThinkingCallback:streamThinkCallback });
 
 console.log(message + '\n');
 
-message = await squad.send('Load video 999 to context');
-
-console.log(message + '\n');
-
-message = await squad.send('What the duration and description of video?');
+message = await squad.send('What duration of video 999', {streamContentCallback:streamCallback});
 
 console.log(message + '\n');
