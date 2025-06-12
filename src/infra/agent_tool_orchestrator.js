@@ -20,11 +20,14 @@ export class AgentToolOrchestrator {
     let currentAgent = agent;
     for (const toolCall of toolCalls) {
       try {
+        console.info(`Executing tool call: ${toolCall.function.name} with args: ${toolCall.function.arguments}`);
         const result = await this.invokeTool(toolCall, currentAgent);
         const response = this._handleToolCallResult(result, toolCall, currentAgent);        
         if (response.agentTransfer) {
+          console.info(`Transferring to agent: ${response.agentTransfer.id}`);
           currentAgent = response.agentTransfer;
-        }        
+        }
+        console.info(`Tool call ${toolCall.function.name} message:`, response.message);    
         toolResults.push(response.message);
       } catch (error) {
         console.error(`Failed to execute tool ${toolCall.function.name}:`, error);

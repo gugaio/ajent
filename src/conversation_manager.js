@@ -85,6 +85,7 @@ export class ConversationManager {
     try {
       while (currentStep <= this._maxSteps) {
         currentStep++;
+        console.log('<####### Processing step:', currentStep, '#######>');
         let { agent_instruction_message, toolSchemas } = this._getCurrentAgentInstructionAndTools();
         let messagesWithInstruction = [...this.messages, agent_instruction_message];
         let response;
@@ -106,6 +107,10 @@ export class ConversationManager {
           await this._handleToolCalls(response.tool_calls);
         } else {
           // No tool calls and not an end tool, keep reasoning (loop)
+          messages.push({
+            role: "system",
+            content: "Você não chamou nenhuma ferramenta nem a tool 'final_answer'. Continue raciocinando e, se quiser finalizar, chame explicitamente a tool 'final_answer'."
+          });
           continue;
         }
       }
