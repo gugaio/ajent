@@ -17,27 +17,28 @@ if(!ajentApiToken || ajentApiToken === '') {
 let squadParams = {
     agents: agents,
     apiToken: ajentApiToken,
-    model: 'gpt-4.1'
+    model: 'gpt-4.1',
+    enableStream: false
   }
 
 const squad = new Squad(squadParams);
 
 const streamCallback = (content) => {
-    //console.log('Stream message:', content);
+    console.log('Stream message:', content);
 };
 
 const streamThinkCallback = (content) => {
-  //console.log('Stream think:', content);
+  console.log('Stream think:', content);
 };
 
 let message = null;
 
 
 console.log('Starting conversation manager');
-message = await squad.send('I want to analyse the playback video api', {createPlanningTask:true, streamContentCallback:streamCallback, streamThinkingCallback:streamThinkCallback });
+message = await squad.send('I want to analyse the playback video api', {createPlanningTask:false, streamContentCallback:streamCallback, streamThinkingCallback:streamThinkCallback });
 
 console.log(message + '\n');
 
-message = await squad.send('What duration of video 999', {streamContentCallback:streamCallback});
+message = await squad.send('What duration of video 999', {createPlanningTask:false, streamContentCallback:streamCallback, streamThinkingCallback:streamThinkCallback });
 
 console.log(message + '\n');

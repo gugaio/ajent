@@ -16,15 +16,18 @@ export class ConversationManager {
    * @param {string} apiUrl
    * @param {Object} agent
    */
-  constructor(apiUrl, xApiToken, agents, maxSteps) {
+  constructor(apiUrl, xApiToken, agents, maxSteps, enableStream) {
     this._completionService = new CompletionService(apiUrl, xApiToken);
     this._toolOrchestrator = new AgentToolOrchestrator();
     this._agents = agents;
-    this._context = {agents: agents, viewer: {}};
+    this._context = {agents: agents, viewer: {}, enableStream};
     this._maxSteps = maxSteps;
     for (const agent of agents) {
       this._context.agents[agent.id] = agent;
       agent.context = this._context;
+      if(!enableStream){
+        agent.useFinalAnswerTool();
+      }
     }
     this.current_agent = agents[0];
     this.messages = [];
@@ -103,6 +106,9 @@ export class ConversationManager {
         if (this.hasToolCalls(response)) {
           await this._handleToolCalls(response.tool_calls);
         } else {
+          if(this._context.enableStream) {
+            return response;
+          }
           console.log('No tool calls found in response. Content:', response.content, 'Continuing conversation.');
           this.messages.push({
             role: "system",
