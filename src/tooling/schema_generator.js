@@ -5,7 +5,7 @@ function schemaGenerator(tools) {
 
 function toolSchemaGenerator(tool) {
     const description = tool.description
-    const params = _getFunctionParameters(tool.tool_function);
+    const params = getFunctionParameters(tool.tool_function);
     const paramList = params.split(",").map(param => param.trim()).filter(Boolean);
   
     const schema = {
@@ -33,7 +33,7 @@ function toolSchemaGenerator(tool) {
     return schema;
 }
 
-function _getFunctionParameters(func) {
+function getFunctionParameters(func) {
   const funcStr = func.toString().trim();
   
   // Handle traditional functions: function name(params) { ... }
@@ -51,4 +51,4 @@ function _getFunctionParameters(func) {
   return ''; // Fallback if no match
 }
  
-export {toolSchemaGenerator, schemaGenerator};
+export {toolSchemaGenerator, schemaGenerator, getFunctionParameters};

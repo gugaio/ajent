@@ -39,7 +39,6 @@ export class ConversationManager {
     try {
       logger.info('Processing user message:', message);
       if(options.createPlanningTask) {
-       logger.info('Creating planning task for message:', message);
        this.planner_agent = this.planner_agent || new PlannerAgent(this._context, message);
        this.current_agent = this.planner_agent;
       }
@@ -66,7 +65,6 @@ export class ConversationManager {
       onContent: streamContentCallback,
       onThinking: streamThinkingCallback,
       onStreamCallback: (content) => {
-        //console.log('<stream>', this.current_agent.id, content);
         if (this.current_agent.id  === 'PlannerAgent') {
           if (streamThinkingCallback) {
             console.log('<stream-thinking>', this.current_agent.id, content);
@@ -89,11 +87,10 @@ export class ConversationManager {
         let { agent_instruction_message, toolSchemas } = this._getCurrentAgentInstructionAndTools();
         let messagesWithInstruction = [...this.messages, agent_instruction_message];
         let response;
+        console.log('Sending messages to completion service');
         if (streamContentCallback) {
-          console.log('Streaming messages with instruction:', agent_instruction_message.content);
           response = await this._streamToCompletionService(messagesWithInstruction, toolSchemas, streamCallbackManager.onStreamCallback);
         } else {
-          console.log('Sending messages with instruction:', agent_instruction_message.content);
           response = await this._sendToCompletionService(messagesWithInstruction, toolSchemas);
         }
         if(this.current_agent.id === 'PlannerAgent') {
@@ -106,10 +103,10 @@ export class ConversationManager {
         if (this.hasToolCalls(response)) {
           await this._handleToolCalls(response.tool_calls);
         } else {
-          // No tool calls and not an end tool, keep reasoning (loop)
+          console.log('No tool calls found in response. Content:', response.content, 'Continuing conversation.');
           this.messages.push({
             role: "system",
-            content: "Você não chamou nenhuma ferramenta nem a tool 'final_answer'. Continue raciocinando e, se quiser finalizar, chame explicitamente a tool 'final_answer'."
+            content: "Você não chamou nenhuma ferramenta nem a tool 'final_answer'. Continue raciocinando e, se quiser finalizar ou perguntar alguma informação, chame explicitamente a tool 'final_answer'."
           });
           continue;
         }

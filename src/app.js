@@ -23,11 +23,11 @@ let squadParams = {
 const squad = new Squad(squadParams);
 
 const streamCallback = (content) => {
-    console.log('Stream message:', content);
+    //console.log('Stream message:', content);
 };
 
 const streamThinkCallback = (content) => {
-  console.log('Stream think:', content);
+  //console.log('Stream think:', content);
 };
 
 let message = null;

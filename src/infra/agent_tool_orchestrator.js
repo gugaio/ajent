@@ -1,5 +1,6 @@
 import { Agent } from '../agent/base_agent.js';
 import Logger from '../utils/logger.js';
+import {getFunctionParameters} from '../tooling/schema_generator.js';
 
 const logger = new Logger({
   level: 'info',  // Set logging level
@@ -47,17 +48,33 @@ export class AgentToolOrchestrator {
    * @returns {Promise<any>}
    */
   async invokeTool(toolCall, agent) {
-    const { function: { name, arguments: args } } = toolCall;
-    const toolFunction = this._getToolFunction(name, agent);
-    if(!toolFunction){
-      return `Tool id ${toolCall.id} with function name ${name}  was not found at current agent`;
-    }
-    const parameters = this._parseToolArguments(args);
-    if (!parameters) {
-      return `Failed to parse tool arguments for function ${name}. Json must be invalid.`;
-    }
 
-    const result = await toolFunction(...parameters);
+    let params = {};
+      const { function: { name, arguments: args } } = toolCall;
+      const toolFunction = this._getToolFunction(name, agent);
+      if(!toolFunction){
+        return `Tool id ${toolCall.id} with function name ${name}  was not found at current agent`;
+      }
+      const toolCallParameters = this._parseToolArguments(args);
+      if (!toolCallParameters) {
+        return `Failed to parse tool arguments for function ${name}. Json must be invalid.`;
+      }
+
+      let expectedParameters = getFunctionParameters(toolFunction);
+      if(!Array.isArray(expectedParameters))
+      {
+        expectedParameters = [expectedParameters]
+      }
+      params = expectedParameters.map(name => {
+        if (toolCallParameters && typeof toolCallParameters === 'object') {
+            return toolCallParameters[name] || null;
+        } else {
+          console.warn('Invalid toolCallParameters: Expected an object.');
+        }
+        
+    });
+
+    const result = await toolFunction.bind(agent)(...params);
     logger.info('Tool executed:', name, result);
     return result;
   }
@@ -121,7 +138,7 @@ export class AgentToolOrchestrator {
     if (!func) {
       return null
     }
-    return func.bind(agent);
+    return func;
   }
 
   /**
@@ -132,7 +149,7 @@ export class AgentToolOrchestrator {
     let result = null;
     try {
       const toolArgs = JSON.parse(argsString);
-      result = Object.values(toolArgs);
+      result = toolArgs;
     } catch (error) {
       console.error('Failed to parse tool arguments:', error.message);      
     }
