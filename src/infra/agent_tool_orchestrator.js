@@ -61,10 +61,8 @@ export class AgentToolOrchestrator {
       }
 
       let expectedParameters = getFunctionParameters(toolFunction);
-      if(!Array.isArray(expectedParameters))
-      {
-        expectedParameters = [expectedParameters]
-      }
+      expectedParameters = expectedParameters.split(',').map(param => param.trim());
+
       params = expectedParameters.map(name => {
         if (toolCallParameters && typeof toolCallParameters === 'object') {
             return toolCallParameters[name] || null;
