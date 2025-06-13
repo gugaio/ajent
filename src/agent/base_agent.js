@@ -50,7 +50,6 @@ export class Agent {
    * @returns {string}
    */
   final_answer(answer) {
-    console.log('Final answer:', answer)
     return answer
   }
 

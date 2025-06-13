@@ -107,7 +107,7 @@ export class ConversationManager {
           await this._handleToolCalls(response.tool_calls);
         } else {
           // No tool calls and not an end tool, keep reasoning (loop)
-          messages.push({
+          this.messages.push({
             role: "system",
             content: "Você não chamou nenhuma ferramenta nem a tool 'final_answer'. Continue raciocinando e, se quiser finalizar, chame explicitamente a tool 'final_answer'."
           });
