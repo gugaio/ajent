@@ -1,6 +1,6 @@
 {
   "name": "ajent",
-  "version": "0.3.13",
+  "version": "0.3.15",
   "main": "dist/ajent.cls",
   "module": "dist/ajent.esm.js",
   "type": "module",

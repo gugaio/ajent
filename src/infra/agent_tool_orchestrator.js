@@ -16,17 +16,17 @@ export class AgentToolOrchestrator {
    * @param {Agent} agent - Current agent executing the tools
    * @returns {Promise<{messages: Array<Message>, current_agent: Agent}>}
    */
-  async executeToolCalls(toolCalls, agent, streamThinkingCallback) {
+  async executeToolCalls(toolCalls, agent, streamCallback) {
     const toolResults = [];
     let currentAgent = agent;
     for (const toolCall of toolCalls) {
       try {
-        streamThinkingCallback && streamThinkingCallback(`\nTool calling: ${toolCall.function.name}.\nArguments: ${toolCall.function.arguments}\n`);
+        streamCallback && streamCallback(`\nTool calling: ${toolCall.function.name}.\nArguments: ${toolCall.function.arguments}\n`);
         const result = await this.invokeTool(toolCall, currentAgent);
         const response = this._handleToolCallResult(result, toolCall, currentAgent);        
         if (response.agentTransfer) {
           console.info(`Transferring to agent: ${response.agentTransfer.id}`);
-          streamThinkingCallback && streamThinkingCallback(`Transfering to agent: ${response.agentTransfer.id}\n`);
+          streamCallback && streamCallback(`Transfering to agent: ${response.agentTransfer.id}\n`);
           currentAgent = response.agentTransfer;
         }
         console.info(`Tool call ${toolCall.function.name} message:`, response.message);    
