@@ -104,7 +104,7 @@ export class ConversationManager {
           return this.messages[this.messages.length - 1];
         }
         if (this.hasToolCalls(response)) {
-          await this._handleToolCalls(response.tool_calls);
+          await this._handleToolCalls(response.tool_calls, streamThinkingCallback);
         } else {
           if(this._context.enableStream) {
             return response;
@@ -164,7 +164,7 @@ export class ConversationManager {
     try {
       await this._completionService.streamMessage(enrichedMessages, toolSchemas, {
         onContent: streamCallback,
-        onFinish: this._handleStreamFinish(messageResponse),
+        onFinish: this._handleStreamFinish(messageResponse, this.current_agent.id),
         onError: this._handleStreamError
       });
   
@@ -177,11 +177,15 @@ export class ConversationManager {
     }
   }
   
-  _handleStreamFinish(messageResponse) {
+  _handleStreamFinish(messageResponse, current_agent_id) {
     return ({ content, toolCalls, finishReason }) => {
       logger.debug('Stream finished', { finishReason, hasContent: !!content, toolCallsCount: toolCalls?.length || 0 });
       
-      if (content) {
+      if(current_agent_id=== 'PlannerAgent') {
+        logger.info('Task planning created:', response.content);
+      } 
+
+      if (content && current_agent_id !== 'PlannerAgent') {
         messageResponse.content = content;
       }
       
@@ -196,8 +200,8 @@ export class ConversationManager {
     throw error;
   }
 
-  async _handleToolCalls(tool_calls) {
-    const {messages, agent} = await this._toolOrchestrator.executeToolCalls(tool_calls, this.current_agent);
+  async _handleToolCalls(tool_calls, streamThinkingCallback) {
+    const {messages, agent} = await this._toolOrchestrator.executeToolCalls(tool_calls, this.current_agent, streamThinkingCallback);
     this.current_agent = agent;
     logger.debug('Tool response:', messages);
     this.messages = [
