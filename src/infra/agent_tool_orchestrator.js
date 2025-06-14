@@ -21,12 +21,12 @@ export class AgentToolOrchestrator {
     let currentAgent = agent;
     for (const toolCall of toolCalls) {
       try {
-        streamCallback && streamCallback(`\nTool calling: ${toolCall.function.name}.\nArguments: ${toolCall.function.arguments}\n`);
+        streamCallback && streamCallback(`\nTool calling: ${toolCall.function.name}.\nArguments: ${toolCall.function.arguments}\n`, true);
         const result = await this.invokeTool(toolCall, currentAgent);
         const response = this._handleToolCallResult(result, toolCall, currentAgent);        
         if (response.agentTransfer) {
           console.info(`Transferring to agent: ${response.agentTransfer.id}`);
-          streamCallback && streamCallback(`Transfering to agent: ${response.agentTransfer.id}\n`);
+          streamCallback && streamCallback(`Transfering to agent: ${response.agentTransfer.id}\n`, true);
           currentAgent = response.agentTransfer;
         }
         console.info(`Tool call ${toolCall.function.name} message:`, response.message);    

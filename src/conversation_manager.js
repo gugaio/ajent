@@ -67,8 +67,8 @@ export class ConversationManager {
    */
   async processConversation(streamCallback) {
     let currentStep = 0;
-    let streamCallbackWrapper  = (content) => {
-      streamCallback(content, this.isReasoning());
+    let streamCallbackWrapper  = (content, isToolCall = false) => {
+      streamCallback(content, this.isReasoning() || isToolCall);
     }
     try {
       while (currentStep <= this._maxSteps) {
