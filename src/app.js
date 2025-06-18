@@ -3,8 +3,6 @@ import {PlaybackAgent} from './samples/playback/playbackAgent.js';
 
 console.log('Starting conversation manager');
 
-const initial_instruction = 'You are a playback api analyst';
-
 const agents = [new PlaybackAgent()];
 
 //get token from env
