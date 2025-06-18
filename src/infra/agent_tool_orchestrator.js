@@ -1,6 +1,6 @@
 import { Agent } from '../agent/base_agent.js';
 import Logger from '../utils/logger.js';
-import {getFunctionParameters} from '../tooling/schema_generator.js';
+import {getDestructuredParams, getPositionalParams} from '../tooling/schema_generator.js';
 
 const logger = new Logger({
   level: 'info',  // Set logging level
@@ -49,34 +49,43 @@ export class AgentToolOrchestrator {
    * @returns {Promise<any>}
    */
   async invokeTool(toolCall, agent) {
+  const {
+    function: { name, arguments: args }
+  } = toolCall;
 
-    let params = {};
-      const { function: { name, arguments: args } } = toolCall;
-      const toolFunction = this._getToolFunction(name, agent);
-      if(!toolFunction){
-        return `Tool id ${toolCall.id} with function name ${name}  was not found at current agent`;
-      }
-      const toolCallParameters = this._parseToolArguments(args);
-      if (!toolCallParameters) {
-        return `Failed to parse tool arguments for function ${name}. Json must be invalid.`;
-      }
+  const toolFunction = this._getToolFunction(name, agent);
+  if (!toolFunction) {
+    return `Tool id ${toolCall.id} with function name ${name} was not found at current agent`;
+  }
 
-      let expectedParameters = getFunctionParameters(toolFunction);
-      expectedParameters = expectedParameters.split(',').map(param => param.trim());
+  const toolCallParameters = this._parseToolArguments(args);
+  if (!toolCallParameters || typeof toolCallParameters !== 'object') {
+    return `Failed to parse tool arguments for function ${name}. JSON must be a valid object.`;
+  }
 
-      params = expectedParameters.map(name => {
-        if (toolCallParameters && typeof toolCallParameters === 'object') {
-            return toolCallParameters[name] || null;
-        } else {
-          console.warn('Invalid toolCallParameters: Expected an object.');
-        }
-        
+  let result;
+
+  const destructuredKeys = getDestructuredParams(toolFunction);
+  const isDestructured = destructuredKeys.length > 0;
+
+  if (isDestructured) {
+    // Chamada com objeto desestruturado
+    const paramObject = {};
+    destructuredKeys.forEach(key => {
+      paramObject[key] = toolCallParameters[key] ?? null;
     });
 
-    const result = await toolFunction.bind(agent)(...params);
-    logger.info('Tool executed:', name, result);
-    return result;
+    result = await toolFunction.bind(agent)(paramObject);
+  } else {
+    // Chamada com parâmetros posicionais
+    const positionalKeys = getPositionalParams(toolFunction);
+    const params = positionalKeys.map(key => toolCallParameters[key] ?? null);
+    result = await toolFunction.bind(agent)(...params);
   }
+
+  logger.info('Tool executed:', name, result);
+  return result;
+}
 
   /**
    * Handles the result of a tool execution

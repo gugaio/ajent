@@ -87,7 +87,7 @@ export class Agent {
   }
 
 
-  transfer_to_agent(id) {
+  transfer_to_agent({id}) {
     if (!this.context["agents"][id]) {
       return `Agent with id ${id} not found in the context.`
     }
@@ -99,7 +99,7 @@ export class Agent {
    * Tool to signal the end of the reasoning loop.
    * @returns {string}
    */
-  final_answer(answer) {
+  final_answer({answer}) {
     return answer
   }
 
