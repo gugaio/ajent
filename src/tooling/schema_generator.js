@@ -38,14 +38,23 @@ function toolSchemaGenerator(tool) {
 }
 
 function getDestructuredParams(func) {
-  const funcStr = func.toString().trim();
-  const match = funcStr.match(/\(\s*{([^}]*)}\s*\)/);
-  if (match) {
+  const funcStr = func.toString();
+
+  // 1. Detecta desestruturação direta: ({ id, url }) =>
+  const match = funcStr.match(/^\(?\s*{([^}]*)}\s*\)?\s*=>/);
+  if (match && match[1]) {
     return match[1]
-      .split(",")
-      .map(p => p.trim().split("=")[0].trim()) // remove defaults
+      .split(',')
+      .map(p => p.trim().split('=')[0].trim()) // remove default values
       .filter(Boolean);
   }
+
+  // 2. Detecta função transpilada com padrão: function func(_ref) { var a = _ref.a; ... }
+  const varMatches = [...funcStr.matchAll(/var\s+(\w+)\s*=\s*_ref\.(\w+)/g)];
+  if (varMatches.length > 0) {
+    return varMatches.map(match => match[2]); // pega os nomes reais (ex: id)
+  }
+
   return [];
 }
 
