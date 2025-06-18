@@ -40,17 +40,33 @@ function toolSchemaGenerator(tool) {
 function getDestructuredParams(func) {
   const funcStr = func.toString().trim();
 
-  // Suporta: function({ a, b }) { ... }, ({ a, b }) => { ... }, ou método: nome({ a, b }) { ... }
-  const destructuredMatch = funcStr.match(/\(?\s*{([^}]*)}\s*\)?\s*[{=>]/);
-  if (destructuredMatch) {
-    return destructuredMatch[1]
-      .split(",")
-      .map(p => p.trim().split("=")[0].trim()) // remove defaults
+  // 1. Arrow function: ({ a, b }) => ...
+  const arrowMatch = funcStr.match(/^\(?\s*{([^}]*)}\s*\)?\s*=>/);
+  if (arrowMatch && arrowMatch[1]) {
+    return arrowMatch[1]
+      .split(',')
+      .map(p => p.trim().split('=')[0].trim())
       .filter(Boolean);
   }
 
-  return []; // fallback
+  // 2. Transpilada: function func(_ref) { var x = _ref.x; ... }
+  const varMatches = [...funcStr.matchAll(/var\s+\w+\s*=\s*_ref\.(\w+)/g)];
+  if (varMatches.length > 0) {
+    return varMatches.map(match => match[1]);
+  }
+
+  // 3. Método de classe: nome({ a, b }) { ... }
+  const methodMatch = funcStr.match(/^[\w\s]*\(?\s*{([^}]*)}\s*\)?\s*{/);
+  if (methodMatch && methodMatch[1]) {
+    return methodMatch[1]
+      .split(',')
+      .map(p => p.trim().split('=')[0].trim())
+      .filter(Boolean);
+  }
+
+  return [];
 }
+
 
 
 function getPositionalParams(func) {

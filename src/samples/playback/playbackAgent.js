@@ -7,13 +7,13 @@ const TASK = "Analyze playback api video information"
 export class PlaybackAgent extends Agent {
     constructor() {
         super(ID, TASK);
-           this.addTool(new Tool('get_video_info', "Get video info of the video. You must provide the video id as parameter", this.get_video_info));        
+           this.addTool(new Tool('get_video_info', "Get video info of the video. Provide an object with a 'video' field containing the video ID.", this.get_video_info));        
     }
 
     instruction = () => {
         if(!this.context["video"]) {
             const instruction = `No video loaded into context.
-            You need load a video using the get_video_info tool, providing the video id as argument.`;
+            You need load a video using the get_video_info tool, providing an object with a 'video' field containing the video ID.`;
             return instruction;
         }
 
@@ -25,7 +25,7 @@ export class PlaybackAgent extends Agent {
     }
 
 
-    async get_video_info(video_id) {
+    async get_video_info({video_id}) {
         this.context["video"] = {
             id: video_id,
             title: "Gladiator",
