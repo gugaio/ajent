@@ -39,15 +39,19 @@ function toolSchemaGenerator(tool) {
 
 function getDestructuredParams(func) {
   const funcStr = func.toString().trim();
-  const match = funcStr.match(/\(\s*{([^}]*)}\s*\)/);
-  if (match) {
-    return match[1]
+
+  // Suporta: function({ a, b }) { ... }, ({ a, b }) => { ... }, ou método: nome({ a, b }) { ... }
+  const destructuredMatch = funcStr.match(/\(?\s*{([^}]*)}\s*\)?\s*[{=>]/);
+  if (destructuredMatch) {
+    return destructuredMatch[1]
       .split(",")
       .map(p => p.trim().split("=")[0].trim()) // remove defaults
       .filter(Boolean);
   }
-  return [];
+
+  return []; // fallback
 }
+
 
 function getPositionalParams(func) {
   const funcStr = func.toString().trim();
