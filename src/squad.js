@@ -9,7 +9,7 @@ export class Squad {
     this._conversationManager = new ConversationManager(apiUrl, apiToken, agents, maxSteps, enableStream);
   }
 
-  async send(message, options={createPlanningTask:false, streamContentCallback:null, streamThinkingCallback:null }) {
+  async send(message, options={createPlanningTask:false, streamCallback:null }) {
     return await this._conversationManager.processMessage(message, options);
   }
 

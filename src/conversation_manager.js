@@ -47,7 +47,7 @@ export class ConversationManager {
       }
       this.messages.push({content: message, role: 'user'});
       this._context.viewer = {};
-      const responseMessage = await this.processConversation(options);
+      const responseMessage = await this.processConversation(options.streamCallback);
       const response = responseMessage.content;
       logger.info('Ajent reply to user:', response);
       return response;
@@ -57,32 +57,21 @@ export class ConversationManager {
     }
   }
 
+  isReasoning(){
+    return this.current_agent.id === 'PlannerAgent';
+  }
 
   /**
    * @param {Array<Message>} messages
    * @returns {Promise<Message>}
    */
-  async processConversation({streamContentCallback, streamThinkingCallback}) {
+  async processConversation(streamCallback) {
     let currentStep = 0;
-    let streamCallbackManager  = {
-      onContent: streamContentCallback,
-      onThinking: streamThinkingCallback,
-      onStreamCallback: (content) => {
-        if (this.current_agent.id  === 'PlannerAgent') {
-          if (streamThinkingCallback) {
-            console.log('<stream-thinking>', this.current_agent.id, content);
-            streamThinkingCallback(content);
-          }
-        } else {
-          if( streamContentCallback) {
-            console.log('<stream-content>', this.current_agent.id, content);
-            streamContentCallback(content);
-          }else{
-            console.log('<stream> problema', this.current_agent.id, content);
-          }
-        }
-      }
-    }
+    let streamCallbackWrapper = streamCallback 
+    ? (content, isToolCall = false) => {
+        streamCallback(content, this.isReasoning() || isToolCall);
+      } 
+    : null;
     try {
       while (currentStep <= this._maxSteps) {
         currentStep++;
@@ -91,8 +80,8 @@ export class ConversationManager {
         let messagesWithInstruction = [...this.messages, agent_instruction_message];
         let response;
         console.log('Sending messages to completion service');
-        if (streamContentCallback) {
-          response = await this._streamToCompletionService(messagesWithInstruction, toolSchemas, streamCallbackManager.onStreamCallback);
+        if (streamCallbackWrapper) {
+          response = await this._streamToCompletionService(messagesWithInstruction, toolSchemas, streamCallbackWrapper);
         } else {
           response = await this._sendToCompletionService(messagesWithInstruction, toolSchemas);
         }
@@ -100,11 +89,11 @@ export class ConversationManager {
           logger.info('Task planning created:', response.content);
         }    
         if (this.hasEndToolCall(response)) {
-          await this._handleToolCalls(response.tool_calls);
+          await this._handleToolCalls(response.tool_calls, streamCallbackWrapper);
           return this.messages[this.messages.length - 1];
         }
         if (this.hasToolCalls(response)) {
-          await this._handleToolCalls(response.tool_calls, streamThinkingCallback);
+          await this._handleToolCalls(response.tool_calls, streamCallbackWrapper);
         } else {
           if(this._context.enableStream) {
             return response;
@@ -164,7 +153,7 @@ export class ConversationManager {
     try {
       await this._completionService.streamMessage(enrichedMessages, toolSchemas, {
         onContent: streamCallback,
-        onFinish: this._handleStreamFinish(messageResponse, this.current_agent.id),
+        onFinish: this._handleStreamFinish(messageResponse),
         onError: this._handleStreamError
       });
   
@@ -177,15 +166,10 @@ export class ConversationManager {
     }
   }
   
-  _handleStreamFinish(messageResponse, current_agent_id) {
+  _handleStreamFinish(messageResponse) {
     return ({ content, toolCalls, finishReason }) => {
       logger.debug('Stream finished', { finishReason, hasContent: !!content, toolCallsCount: toolCalls?.length || 0 });
-      
-      if(current_agent_id=== 'PlannerAgent') {
-        logger.info('Task planning created:', response.content);
-      } 
-
-      if (content && current_agent_id !== 'PlannerAgent') {
+      if (content) {
         messageResponse.content = content;
       }
       
@@ -200,8 +184,8 @@ export class ConversationManager {
     throw error;
   }
 
-  async _handleToolCalls(tool_calls, streamThinkingCallback) {
-    const {messages, agent} = await this._toolOrchestrator.executeToolCalls(tool_calls, this.current_agent, streamThinkingCallback);
+  async _handleToolCalls(tool_calls, streamCallback) {
+    const {messages, agent} = await this._toolOrchestrator.executeToolCalls(tool_calls, this.current_agent, streamCallback);
     this.current_agent = agent;
     logger.debug('Tool response:', messages);
     this.messages = [

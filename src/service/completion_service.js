@@ -115,7 +115,7 @@ export class CompletionService {
             switch (data.type) {
               case 'content':
                 fullContent += data.content;
-                onContent(data.content, fullContent);
+                onContent(data.content);
                 break;
 
               case 'tool_call':
