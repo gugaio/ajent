@@ -64,6 +64,20 @@ function getDestructuredParams(func) {
       .filter(Boolean);
   }
 
+  // 4. Código minificado/transpilado com alias: let {context:t, eventName:n} = e
+  const destructuringAliasMatches = [...funcStr.matchAll(/let\s*{([^}]+)}\s*=\s*\w+/g)];
+  if (destructuringAliasMatches.length > 0) {
+    // Pega os nomes antes dos dois pontos
+    const allParams = destructuringAliasMatches
+      .map(m => m[1])
+      .join(',')
+      .split(',')
+      .map(p => p.trim().split(':')[0].trim()) // pega o nome original (ex: context:t)
+      .filter(Boolean);
+
+    return [...new Set(allParams)];
+  }
+
   return [];
 }
 
