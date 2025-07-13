@@ -75,11 +75,10 @@ export class ConversationManager {
     try {
       while (currentStep <= this._maxSteps) {
         currentStep++;
-        console.log('<####### Processing step:', currentStep, '#######>');
+        logger.info('<####### Processing step:', currentStep, '#######>');
         let { agent_instruction_message, toolSchemas } = this._getCurrentAgentInstructionAndTools();
         let messagesWithInstruction = [...this.messages, agent_instruction_message];
         let response;
-        console.log('Sending messages to completion service');
         if (streamCallbackWrapper) {
           response = await this._streamToCompletionService(messagesWithInstruction, toolSchemas, streamCallbackWrapper);
         } else {
@@ -98,7 +97,7 @@ export class ConversationManager {
           if(this._context.enableStream) {
             return response;
           }
-          console.log('No tool calls found in response. Content:', response.content, 'Continuing conversation.');
+          logger.info('No tool calls found in response. Content:', response.content, 'Continuing conversation.');
           this.messages.push({
             role: "system",
             content: "Você não chamou nenhuma ferramenta nem a tool 'final_answer'. Continue raciocinando e, se quiser finalizar ou perguntar alguma informação, chame explicitamente a tool 'final_answer'."
@@ -143,8 +142,7 @@ export class ConversationManager {
   }
 
   async _streamToCompletionService(enrichedMessages, toolSchemas, streamCallback) {
-    logger.info('Streaming messages to completion service');
-    
+
     const messageResponse = {
       content: '',
       role: 'assistant'
@@ -157,7 +155,6 @@ export class ConversationManager {
         onError: this._handleStreamError
       });
   
-      logger.debug('Stream completed successfully', { messageResponse });
       this.messages.push(messageResponse);
       return messageResponse;
     } catch (error) {
