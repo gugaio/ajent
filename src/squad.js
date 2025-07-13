@@ -1,11 +1,10 @@
 import { ConversationManager } from './conversation_manager.js';
-
-const DEFAULT_AJENT_API_URL = 'https://spinal.onrender.com/';
+import { config } from './config.js';
 
 
 export class Squad {
 
-  constructor({agents, apiToken, apiUrl = DEFAULT_AJENT_API_URL, maxSteps = 7, enableStream = false}) {
+  constructor({agents, apiToken, apiUrl = config.DEFAULT_AJENT_API_URL, maxSteps = 7, enableStream = false}) {
     this._conversationManager = new ConversationManager(apiUrl, apiToken, agents, maxSteps, enableStream);
   }
 
