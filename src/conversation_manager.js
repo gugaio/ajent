@@ -207,7 +207,7 @@ export class ConversationManager {
    * @param {Array<Object>} tools
    * @returns {Promise<Message>}
    */
-  async handleToolResponse(response, previousMessages) {
+  async handleToolResponse(response) {
     const {messages, current_agent} = await this._toolOrchestrator.executeToolCalls(response.tool_calls, this.current_agent);
     this.current_agent = current_agent;
     return messages;

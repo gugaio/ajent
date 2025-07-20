@@ -116,7 +116,7 @@ export class AgentToolOrchestrator {
    * @param {Agent} agent - Agent that executed the tool
    * @returns {Message}
    */
-  _createToolResponse(toolCallId, content, agent) {
+  _createToolResponse(toolCallId, content) {
     return {
       role: "tool",
       tool_call_id: toolCallId,

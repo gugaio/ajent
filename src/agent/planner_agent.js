@@ -1,6 +1,4 @@
 import { Agent } from './base_agent.js';
-import { Tool } from '../tooling/tool.js';
-
 
 const ID = "PlannerAgent";
 const TASK = "Create a step-by-step plan to achieve the user's initial task";
@@ -62,7 +60,7 @@ export class PlannerAgent extends Agent {
     };
 
     getAgentsToolsListWithNames(agents) {
-        return agents.reduce((acc, agent, index) => {
+        return agents.reduce((acc, agent) => {
             const agentTools = agent.tools();
             const agentName = `Agent ${agent.id}`;
             

@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { CompletionService } from './completion_service';
 
 jest.mock('axios');
