@@ -6,12 +6,12 @@ import Logger from './utils/logger.js';
 
 const logger = new Logger({
   level: 'info',  // Set logging level
-  prefix: 'ConversationManager',   // Add prefix to all logs
+  prefix: 'AgenticLoop',   // Add prefix to all logs
   enableTimestamp: true,  // Include timestamps
   enableColors: true,     // Enable colors in Node.js
 });
 
-export class ConversationManager {
+export class AgenticLoop {
   /**
    * @param {string} apiUrl
    * @param {Object} agent
