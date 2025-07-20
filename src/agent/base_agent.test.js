@@ -21,13 +21,23 @@ describe('Agent class', () => {
   });
 
   test('tools method with default transfer_to_agent', () => {
-    expect(agent.tools()).toEqual([new Tool('transfer_to_agent', 'Transfer to an agent using their ID. The function expects an object like: { id: "agent-id" }.', agent.transfer_to_agent)]);
+    expect(agent.tools()).toEqual([
+      new Tool('transfer_to_agent',
+        'Transfer to an agent using their ID. The function expects an object like: { id: "agent-id" }.',
+        agent.transfer_to_agent,
+        { 'id': 'agent-id' }
+      )]);
   });
 
   test('addTool method', () => {
     const tool = new Tool('tool_1', 'Tool 1', () => {});
     agent.addTool(tool);
-    expect(agent.tools()).toEqual([new Tool('transfer_to_agent', 'Transfer to an agent using their ID. The function expects an object like: { id: "agent-id" }.', agent.transfer_to_agent), tool]);
+    expect(agent.tools()).toEqual([
+      new Tool('transfer_to_agent',
+        'Transfer to an agent using their ID. The function expects an object like: { id: "agent-id" }.',
+        agent.transfer_to_agent,
+        { 'id': 'agent-id' }
+      ), tool]);
   });
 
   test('transfer_to_agent method', () => {
