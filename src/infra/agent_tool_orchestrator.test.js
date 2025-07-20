@@ -162,7 +162,7 @@ describe('AgentToolOrchestrator', () => {
 
       const result = await orchestrator.executeToolCalls([mockToolCall], mockAgent);
 
-      expect(result.current_agent).toBe(mockAgentTransfer);
+      expect(result.agent).toBe(mockAgentTransfer);
     });
 
     
