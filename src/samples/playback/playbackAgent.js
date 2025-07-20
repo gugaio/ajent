@@ -7,7 +7,13 @@ const TASK = "Analyze playback api video information";
 export class PlaybackAgent extends Agent {
     constructor() {
         super(ID, TASK);
-           this.addTool(new Tool('get_video_info', "Get video info of the video. Provide an object with a 'video' field containing the video ID.", this.get_video_info));        
+           this.addTool(
+            new Tool(
+                'get_video_info',
+                "Get video info of the video. Provide an object with a 'video' field containing the video ID.",
+                this.get_video_info,
+                {video_id: "9999"}
+            ));        
     }
 
     instruction = () => {

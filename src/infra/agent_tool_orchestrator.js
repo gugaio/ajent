@@ -68,13 +68,7 @@ export class AgentToolOrchestrator {
   const isDestructured = destructuredKeys.length > 0;
 
   if (isDestructured) {
-    // Chamada com objeto desestruturado
-    const paramObject = {};
-    destructuredKeys.forEach(key => {
-      paramObject[key] = toolCallParameters[key] ?? null;
-    });
-
-    result = await toolFunction.bind(agent)(paramObject);
+    result = await toolFunction.bind(agent)(toolCallParameters);
   } else {
     // Chamada com parâmetros posicionais
     const positionalKeys = getPositionalParams(toolFunction);

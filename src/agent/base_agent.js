@@ -57,12 +57,24 @@ export class Agent {
     this.task = task;
     this.context = context;
     this._tools = tools.concat([
-      new Tool('transfer_to_agent', 'Transfer to an agent using their ID. The function expects an object like: { id: "agent-id" }.', this.transfer_to_agent),
-       ]);
+      new Tool(
+      'transfer_to_agent',
+      'Transfer to an agent using their ID. The function expects an object like: { id: "agent-id" }.',
+      this.transfer_to_agent,
+      { 'id': 'agent-id' }
+      ),
+    ]);
   }
 
   useFinalAnswerTool(){
-    this._tools.push(new Tool('final_answer', 'Use this tool to indicate that the agent has reached the end of its reasoning loop and is ready to provide a final response.', this.final_answer));
+    this._tools.push(
+      new Tool(
+        'final_answer',
+        'Use this tool to indicate that the agent has reached the end of its reasoning loop and is ready to provide a final response.',
+        this.final_answer,
+        { 'answer': 'The final answer is ...' }
+      )
+      );
   }
 
   base_instruction = () => {

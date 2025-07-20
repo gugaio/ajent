@@ -5,14 +5,6 @@ function schemaGenerator(tools) {
 function toolSchemaGenerator(tool) {
   const description = tool.description;
 
-  // Tenta pegar parâmetros desestruturados
-  const destructuredParams = getDestructuredParams(tool.tool_function);
-
-  // Se não for desestruturado, tenta pegar os posicionais
-  const paramKeys = destructuredParams.length
-    ? destructuredParams
-    : getPositionalParams(tool.tool_function);
-
   const schema = {
     type: "function",
     function: {
@@ -26,16 +18,81 @@ function toolSchemaGenerator(tool) {
     }
   };
 
-  paramKeys.forEach(param => {
-    schema.function.parameters.properties[param] = {
-      type: "string", // Pode ser melhorado com inferência
-      description: `Description for parameter: ${param}.`
-    };
-    schema.function.parameters.required.push(param);
-  });
+  // Use sample_input to generate better schema if available
+  if (tool.sample_input && typeof tool.sample_input === 'object') {
+    Object.keys(tool.sample_input).forEach(key => {
+      const sampleValue = tool.sample_input[key];
+      const inferredType = inferTypeFromValue(sampleValue);
+      
+      schema.function.parameters.properties[key] = {
+        type: inferredType.type,
+        description: `Parameter: ${key}${inferredType.description ? ` - ${inferredType.description}` : ''}`
+      };
+      
+      if (inferredType.enum) {
+        schema.function.parameters.properties[key].enum = inferredType.enum;
+      }
+      
+      // Add to required if sample value is not null/undefined
+      if (sampleValue !== null && sampleValue !== undefined) {
+        schema.function.parameters.required.push(key);
+      }
+    });
+  } else {
+    // Fallback to parameter inference
+
+    // Tenta pegar parâmetros desestruturados
+    const destructuredParams = getDestructuredParams(tool.tool_function);
+
+    // Se não for desestruturado, tenta pegar os posicionais
+    const paramKeys = destructuredParams.length
+    ? destructuredParams
+    : getPositionalParams(tool.tool_function);
+
+    paramKeys.forEach(param => {
+      schema.function.parameters.properties[param] = {
+        type: "string", // Pode ser melhorado com inferência
+        description: `Description for parameter: ${param}.`
+      };
+      schema.function.parameters.required.push(param);
+    });
+  }
 
   return schema;
 }
+
+function inferTypeFromValue(value) {
+  if (value === null || value === undefined) {
+    return { type: "null", description: "This parameter can be null." };
+  }
+
+  if (Array.isArray(value)) {
+    if (value.length === 0) {
+      return { type: "array", description: "Empty array, type cannot be inferred." };
+    }
+    const itemType = inferTypeFromValue(value[0]);
+    return { type: "array", description: `Array of ${itemType.type}s.`, items: itemType };
+  }
+
+  if (typeof value === 'object') {
+    return { type: "object", description: "Object with unspecified properties." };
+  }
+
+  if (typeof value === 'string') {
+    return { type: "string", description: "String value." };
+  }
+
+  if (typeof value === 'number') {
+    return { type: "number", description: "Number value." };
+  }
+
+  if (typeof value === 'boolean') {
+    return { type: "boolean", description: "Boolean value." };
+  }
+
+  // Fallback for unknown types
+  return { type: "string", description: `Unknown type for value: ${value}.` };
+};
 
 /**
  * Extrai os nomes originais de parâmetros vindos do primeiro argumento da função,
