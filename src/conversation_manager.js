@@ -124,14 +124,14 @@ export class ConversationManager {
   }
 
   _getCurrentAgentInstructionAndTools() {
-    logger.debug('Current agent: ', this.current_agent.id)
-    logger.debug('Current agent instruction: ', this.current_agent.instruction())
+    logger.debug('Current agent: ', this.current_agent.id);
+    logger.debug('Current agent instruction: ', this.current_agent.instruction());
     const agent_instruction_message = {
       content:  this.current_agent.instruction() + '\n' + this.current_agent.base_instruction(),
       role: 'system'
     };
     const toolSchemas = schemaGenerator(this.current_agent.tools());
-    logger.debug('Current agent tools: ', toolSchemas)
+    logger.debug('Current agent tools: ', toolSchemas);
     return {agent_instruction_message, toolSchemas};
   }
 
@@ -210,6 +210,6 @@ export class ConversationManager {
   async handleToolResponse(response, previousMessages) {
     const {messages, current_agent} = await this._toolOrchestrator.executeToolCalls(response.tool_calls, this.current_agent);
     this.current_agent = current_agent;
-    return messages
+    return messages;
   }
 }

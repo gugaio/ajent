@@ -17,7 +17,7 @@ let squadParams = {
     apiToken: ajentApiToken,
     model: 'gpt-4.1',
     enableStream: true
-  }
+  };
 
 const squad = new Squad(squadParams);
 

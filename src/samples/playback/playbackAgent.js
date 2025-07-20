@@ -1,8 +1,8 @@
 import { Agent } from '../../agent/base_agent.js';
 import { Tool } from '../../tooling/tool.js';
 
-const ID = "playback_agent"
-const TASK = "Analyze playback api video information"
+const ID = "playback_agent";
+const TASK = "Analyze playback api video information";
 
 export class PlaybackAgent extends Agent {
     constructor() {
@@ -22,7 +22,7 @@ export class PlaybackAgent extends Agent {
         const instruction = `The video loaded into context is ${this.context["video"]["title"]}.
         Complete info ${video_info_str}.`;
         return instruction;
-    }
+    };
 
 
     async get_video_info({video_id}) {
@@ -33,13 +33,13 @@ export class PlaybackAgent extends Agent {
             duration: "5 seconds",
             tags: ["continuation", "denzel"],
             categories: ["war", "war"]
-        }
+        };
         const video_info_str = JSON.stringify(this.context["video"], null, 2);
         return video_info_str;
     }
 
     _get_video_fields = () => {
-        return "id,title,description,duration,tags,categories"
-    }
+        return "id,title,description,duration,tags,categories";
+    };
 
 }

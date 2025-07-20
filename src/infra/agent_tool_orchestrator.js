@@ -143,7 +143,7 @@ export class AgentToolOrchestrator {
   _getToolFunction(functionName, agent) {
     const func = agent.mapTools()[functionName];
     if (!func) {
-      return null
+      return null;
     }
     return func;
   }

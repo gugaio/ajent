@@ -48,7 +48,7 @@ export class Audio {
   
     this._stop = () => {
         stopMediaRecording();
-    }
+    };
   }
 
   async transcribeAudio(audioBlob) {

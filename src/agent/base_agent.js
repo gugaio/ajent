@@ -15,7 +15,7 @@ const INSTRUCTION_WITH_FINAL_ANSWER = `You are an expert assistant who can solve
     - Do not write questions or outputs directly in the message content. Instead, **use the "final_answer" tool** to deliver your message or request for information.
     - If you need the user to provide input (e.g., “Please provide the video ID you want to analyze”), do not write it in a normal message — instead, call the "final_answer" tool with that message.
 
-    Your reasoning must end with a tool call, not a regular message.`
+    Your reasoning must end with a tool call, not a regular message.`;
 
 const INSTRUCTION_WITHOUT_FINAL_ANSWER = `You are an expert assistant who can solve any task using tool calls when necessary.
 You will be given a task to solve as best you can, using the available tools strategically.
@@ -48,21 +48,21 @@ You will be given a task to solve as best you can, using the available tools str
 - Use tools as needed during your reasoning process
 - Conclude with direct text unless a tool call is specifically required for the final step
 
-Your goal is to be helpful and natural in your responses while using tools strategically to enhance your capabilities.`
+Your goal is to be helpful and natural in your responses while using tools strategically to enhance your capabilities.`;
 
 
 export class Agent {
   constructor(id, task, tools = [], context = {}) {
-    this.id = id
-    this.task = task
-    this.context = context
+    this.id = id;
+    this.task = task;
+    this.context = context;
     this._tools = tools.concat([
       new Tool('transfer_to_agent', 'Transfer to an agent using their ID. The function expects an object like: { id: "agent-id" }.', this.transfer_to_agent),
-       ])
+       ]);
   }
 
   useFinalAnswerTool(){
-    this._tools.push(new Tool('final_answer', 'Use this tool to indicate that the agent has reached the end of its reasoning loop and is ready to provide a final response.', this.final_answer))
+    this._tools.push(new Tool('final_answer', 'Use this tool to indicate that the agent has reached the end of its reasoning loop and is ready to provide a final response.', this.final_answer));
   }
 
   base_instruction = () => {
@@ -72,27 +72,27 @@ export class Agent {
       return INSTRUCTION_WITH_FINAL_ANSWER;
     }
     
-  }
+  };
 
   instruction = () => {
-    return `The agent with id ${this.id} is a base agent.`
-  }
+    return `The agent with id ${this.id} is a base agent.`;
+  };
 
   tools = () => {
-    return this._tools
-  }
+    return this._tools;
+  };
 
   addTool = (tool) => {
-    this._tools.push(tool)
-  }
+    this._tools.push(tool);
+  };
 
 
   transfer_to_agent({id}) {
     if (!this.context["agents"][id]) {
-      return `Agent with id ${id} not found in the context.`
+      return `Agent with id ${id} not found in the context.`;
     }
-    const new_agent = this.context["agents"][id]
-    return new_agent
+    const new_agent = this.context["agents"][id];
+    return new_agent;
   }
 
   /**
@@ -100,14 +100,14 @@ export class Agent {
    * @returns {string}
    */
   final_answer({answer}) {
-    return answer
+    return answer;
   }
 
   mapTools = () =>  {
     return this._tools.reduce((acc, tool) => {
-      acc[tool.id] = tool.tool_function
-      return acc
-    }, {})
+      acc[tool.id] = tool.tool_function;
+      return acc;
+    }, {});
   };
   
 } 

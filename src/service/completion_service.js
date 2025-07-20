@@ -1,5 +1,4 @@
 import axios from 'axios';
-import {EventSource} from 'eventsource';
 
 export class CompletionService {
   constructor(baseUrl, xApiToken, httpClient = null) {

@@ -59,7 +59,7 @@ export class PlannerAgent extends Agent {
                 - Nunca execute etapas diretamente
                 - Se estiver faltando alguma informação, faça exatamente UMA pergunta de esclarecimento
                 - Para tarefas complexas, inclua etapas de verificação`;
-    }
+    };
 
     getAgentsToolsListWithNames(agents) {
         return agents.reduce((acc, agent, index) => {

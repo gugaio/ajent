@@ -19,7 +19,7 @@ describe('AgentToolOrchestrator', () => {
     };
 
     const mockToolFunction = jest.fn().mockResolvedValue('success');
-    const mapTools = { 'testTool': mockToolFunction }
+    const mapTools = { 'testTool': mockToolFunction };
     mockAgent.mapTools.mockReturnValue(mapTools);
 
     // Setup default tool call
@@ -66,7 +66,7 @@ describe('AgentToolOrchestrator', () => {
 
     it('should handle invalid JSON arguments', async () => {
 
-      console.error = jest.fn()
+      console.error = jest.fn();
 
       const funcName = 'testTool';
 
@@ -123,7 +123,7 @@ describe('AgentToolOrchestrator', () => {
 
     it('should handle tool execution errors', async () => {
 
-      console.error = jest.fn()
+      console.error = jest.fn();
 
       const funcName = 'testTool';
 
