@@ -4,4 +4,7 @@ export { AgentToolOrchestrator } from './infra/agent_tool_orchestrator.js';
 export { Agent } from './agent/base_agent.js';
 export { Squad } from './squad.js';
 export { Tool } from './tooling/tool.js';
-export { Audio } from './audio.js';
+export { Audio } from './audio/audio.js';
+export { AudioRecorder } from './audio/audio_recorder.js';
+export { SpeechToTextService } from './audio/speech_to_text_service.js';
+export { RealtimeAudioRecorder } from './audio/realtime_audio_recorder.js';

@@ -1,15 +1,6 @@
-import axios from 'axios';
-
-const DEFAULT_AJENT_API_URL = 'https://spinal.onrender.com/';
-
-
-export class Audio {
-
-  constructor(xApiToken, apiUrl) {
+export class AudioRecorder {
+  constructor() {
     this._stop = null;
-    this.apiToken = xApiToken;
-    this.apiUrl = apiUrl || DEFAULT_AJENT_API_URL;
-    this._transcribeAudio = this.transcribeAudio.bind(this);
   }
 
   async startRecording(callback = null) {
@@ -50,36 +41,9 @@ export class Audio {
     };
   }
 
-  async transcribeAudio(audioBlob) {
-    try {
-        const formData = new FormData();
-        formData.append('audio', audioBlob);
-        
-        // Create a client with multipart/form-data content type
-        const audioClient = axios.create({
-          baseURL: this.apiUrl,
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            'x-api-token': this.apiToken
-          }
-        });
-        
-        // Send the request
-        const response = await audioClient.post('/stt', formData, {});
-        
-        // Get the text response from headers
-        const content = response.data;
-        
-        return content;
-      } catch (error) {
-        throw new Error(`Failed to send audio message: ${error.message}`);
-      }
-  }
-
   stopAndSend() {
     if (this._stop) {
       this._stop();
     }
   }
-
 }

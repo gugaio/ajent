@@ -62,22 +62,7 @@ export class AgentToolOrchestrator {
     return `Failed to parse tool arguments for function ${name}. JSON must be a valid object.`;
   }
 
-  let result;
-
-  const destructuredKeys = getDestructuredParams(toolFunction);
-  const isDestructured = destructuredKeys.length > 0;
-
-  if (isDestructured) {
-    result = await toolFunction.bind(agent)(toolCallParameters);
-  } else {
-    // Chamada com parâmetros posicionais
-    const positionalKeys = getPositionalParams(toolFunction);
-    const params = positionalKeys.map(key => toolCallParameters[key] ?? null);
-    result = await toolFunction.bind(agent)(...params);
-  }
-
-  logger.info('Tool executed:', name, result);
-  return result;
+  return await toolFunction.bind(agent)(toolCallParameters);
 }
 
   /**
