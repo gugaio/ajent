@@ -37,7 +37,9 @@ export class AgentToolOrchestrator {
           continue;
         }
 
-        streamCallback && streamCallback(`<tool>Tool calling ${toolCall.function.name} (${toolCall.function.arguments})</tool>`, false);
+        const toolCallingMsg = `<tool>Tool calling ${toolCall.function.name} (${toolCall.function.arguments})</tool>`;
+        console.info(toolCallingMsg);
+        streamCallback && streamCallback(toolCallingMsg, false);        
         const result = await this.invokeTool(toolCall, currentAgent);
         
         // Track this tool call
@@ -47,7 +49,7 @@ export class AgentToolOrchestrator {
           console.info(`Transferring to agent: ${response.agentTransfer.id}`);
           currentAgent = response.agentTransfer;
         }
-        console.info(`Tool call ${toolCall.function.name} message:`, response.message);    
+        console.info(`Tool call ${toolCall.function.name} response message:`, response.message);    
         toolResults.push(response.message);
       } catch (error) {
         console.error(`Failed to execute tool ${toolCall.function.name}:`, error);

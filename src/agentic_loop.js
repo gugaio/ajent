@@ -132,9 +132,8 @@ export class AgenticLoop {
 
   _getCurrentAgentInstructionAndTools() {
     logger.debug('Current agent: ', this.current_agent.id);
-    logger.debug('Current agent instruction: ', this.current_agent.instruction());
     const agent_instruction_message = {
-      content:  this.current_agent.instruction() + '\n' + this.current_agent.base_instruction(),
+      content:   this.current_agent.base_instruction() + '\n' + this.current_agent.instruction() + '\n',
       role: 'system'
     };
     const toolSchemas = schemaGenerator(this.current_agent.tools());
