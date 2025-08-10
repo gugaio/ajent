@@ -16,12 +16,15 @@ export class AgenticLoop {
    * @param {string} apiUrl
    * @param {Object} agent
    */
-  constructor(apiUrl, xApiToken, agents, maxSteps, enableStream, forceTools) {
+  constructor(apiUrl, xApiToken, agents, maxSteps, enableStream, forceTools, model, llmName, llmTemperature) {
     this._completionService = new CompletionService(apiUrl, xApiToken);
     this._toolOrchestrator = new AgentToolOrchestrator();
     this._agents = agents;
     this._context = {agents: agents, viewer: {}, enableStream, forceTools};
     this._maxSteps = maxSteps;
+    this.model = model;
+    this.llmName = llmName;
+    this.llmTemperature = llmTemperature;
     for (const agent of agents) {
       this._context.agents[agent.id] = agent;
       agent.context = this._context;
@@ -81,7 +84,7 @@ export class AgenticLoop {
         currentStep++;
         logger.info('<####### Processing step:', currentStep, '#######>');
         let { agent_instruction_message, toolSchemas } = this._getCurrentAgentInstructionAndTools();
-        let messagesWithInstruction = [...this.messages, agent_instruction_message];
+        let messagesWithInstruction = [agent_instruction_message, ...this.messages];
         let response;
         if (streamCallbackWrapper) {
           response = await this._streamToCompletionService(messagesWithInstruction, toolSchemas, streamCallbackWrapper);
@@ -140,7 +143,7 @@ export class AgenticLoop {
   }
 
   async _sendToCompletionService(enrichedMessages, toolSchemas) {
-    const response = await this._completionService.sendMessage(enrichedMessages, toolSchemas);
+    const response = await this._completionService.sendMessage(enrichedMessages, toolSchemas, this.model, this.llmName, this.llmTemperature);
     this.messages.push(response);
     return response;
   }
@@ -157,7 +160,8 @@ export class AgenticLoop {
         onContent: streamCallback,
         onFinish: this._handleStreamFinish(messageResponse),
         onError: this._handleStreamError
-      });
+      },
+      this.model, this.llmName, this.llmTemperature);
   
       this.messages.push(messageResponse);
       return messageResponse;

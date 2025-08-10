@@ -13,10 +13,13 @@ export class CompletionService {
     });
   }
 
-  async sendMessage(messages, tools) {
+  async sendMessage(messages, tools, model, llmName, llmTemperature) {
     try {
       const payload = {
-        messages
+        messages,
+        model,
+        llmName,
+        llmTemperature
       };
       if (tools && tools.length > 0) {
         payload.tools = tools;
@@ -64,9 +67,9 @@ export class CompletionService {
     onToolCall = () => {},
     onFinish = () => {},
     onError = () => {}
-  } = {}) {
+  } = {}, model, llmName, llmTemperature) {
     try {
-      const payload = { messages };
+      const payload = { messages, model, llmName, llmTemperature };
       if (tools && tools.length > 0) {
         payload.tools = tools;
       }
