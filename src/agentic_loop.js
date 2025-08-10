@@ -16,16 +16,16 @@ export class AgenticLoop {
    * @param {string} apiUrl
    * @param {Object} agent
    */
-  constructor(apiUrl, xApiToken, agents, maxSteps, enableStream) {
+  constructor(apiUrl, xApiToken, agents, maxSteps, enableStream, forceTools) {
     this._completionService = new CompletionService(apiUrl, xApiToken);
     this._toolOrchestrator = new AgentToolOrchestrator();
     this._agents = agents;
-    this._context = {agents: agents, viewer: {}, enableStream};
+    this._context = {agents: agents, viewer: {}, enableStream, forceTools};
     this._maxSteps = maxSteps;
     for (const agent of agents) {
       this._context.agents[agent.id] = agent;
       agent.context = this._context;
-      if(!enableStream){
+      if(forceTools){
         agent.useFinalAnswerTool();
       }
     }
@@ -41,6 +41,10 @@ export class AgenticLoop {
   async processMessage(message, options) {
     try {
       logger.info('Processing user message:', message);
+      
+      // Clear tool call history at the start of each new message processing
+      this._toolOrchestrator.clearHistory();
+      
       if(options.createPlanningTask) {
        this.planner_agent = this.planner_agent || new PlannerAgent(this._context, message);
        this.current_agent = this.planner_agent;
@@ -94,7 +98,7 @@ export class AgenticLoop {
         if (this.hasToolCalls(response)) {
           await this._handleToolCalls(response.tool_calls, streamCallbackWrapper);
         } else {
-          if(this._context.enableStream) {
+          if(!this._context.forceTools) {
             return response;
           }
           logger.info('No tool calls found in response. Content:', response.content, 'Continuing conversation.');

@@ -59,9 +59,9 @@ export class Agent {
     this._tools = tools.concat([
       new Tool(
       'transfer_to_agent',
-      'Transfer to an agent using their ID. The function expects an object like: { id: "agent-id" }.',
+      `Transfer to agent ${id}. The function expects an object like: { id: ${id} }. Task of this agent is: ${this.task}`,
       this.transfer_to_agent,
-      { 'id': 'agent-id' }
+      { 'id': id }
       ),
     ]);
   }
@@ -78,10 +78,10 @@ export class Agent {
   }
 
   base_instruction = () => {
-    if(this.context.enableStream){
-      return INSTRUCTION_WITHOUT_FINAL_ANSWER;
-    }else{
+    if(this.context.forceTools){
       return INSTRUCTION_WITH_FINAL_ANSWER;
+    }else{
+      return INSTRUCTION_WITHOUT_FINAL_ANSWER;
     }
     
   };
@@ -103,6 +103,12 @@ export class Agent {
     if (!this.context["agents"][id]) {
       return `Agent with id ${id} not found in the context.`;
     }
+    
+    // Prevent self-transfer
+    if (id === this.id) {
+      return `Cannot transfer to the same agent (${this.id}). You are already this agent. Use other available tools or provide a final answer instead.`;
+    }
+    
     const new_agent = this.context["agents"][id];
     return new_agent;
   }

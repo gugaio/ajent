@@ -10,6 +10,11 @@ const logger = new Logger({
 });
 
 export class AgentToolOrchestrator {
+  constructor() {
+    this.toolCallHistory = new Map(); // Tracks recent tool calls to prevent loops
+    this.maxHistorySize = 10; // Maximum number of recent calls to track
+  }
+
   /**
    * Executes a series of tool calls and handles potential agent transfers
    * @param {Array<ToolCall>} toolCalls - Array of tool calls to execute
@@ -21,8 +26,22 @@ export class AgentToolOrchestrator {
     let currentAgent = agent;
     for (const toolCall of toolCalls) {
       try {
+        // Check for consecutive tool calls to prevent loops
+        if (this._isConsecutiveToolCall(toolCall.function.name, currentAgent.id)) {
+          logger.warn(`Detected consecutive tool call: ${toolCall.function.name}. Skipping to prevent loop.`);
+          toolResults.push(this._createErrorResponse(
+            toolCall.id, 
+            `Tool ${toolCall.function.name} was just called. Avoiding consecutive calls to prevent loops. Try a different approach or tool.`,
+            currentAgent
+          ));
+          continue;
+        }
+
         streamCallback && streamCallback(`<tool>Tool calling ${toolCall.function.name} (${toolCall.function.arguments})</tool>`, false);
         const result = await this.invokeTool(toolCall, currentAgent);
+        
+        // Track this tool call
+        this._trackLastTool(toolCall.function.name, currentAgent.id);
         const response = this._handleToolCallResult(result, toolCall, currentAgent);        
         if (response.agentTransfer) {
           console.info(`Transferring to agent: ${response.agentTransfer.id}`);
@@ -140,5 +159,37 @@ export class AgentToolOrchestrator {
       console.error('Failed to parse tool arguments:', error.message);      
     }
     return result;
+  }
+
+  /**
+   * Checks if a tool is being called consecutively
+   * @private
+   */
+  _isConsecutiveToolCall(toolName, agentId) {
+    // Allow consecutive transfers to enable agent-to-agent redirections
+    if (toolName === 'transfer_to_agent') {
+      return false;
+    }
+    
+    const key = `${agentId}:lastTool`;
+    return this.toolCallHistory.get(key) === toolName;
+  }
+
+  /**
+   * Tracks the last tool called for an agent
+   * @private
+   */
+  _trackLastTool(toolName, agentId) {
+    const key = `${agentId}:lastTool`;
+    this.toolCallHistory.set(key, toolName);
+  }
+
+  /**
+   * Clears the tool call history - useful when starting a new conversation
+   * @public
+   */
+  clearHistory() {
+    this.toolCallHistory.clear();
+    logger.debug('Tool call history cleared');
   }
 }
