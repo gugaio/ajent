@@ -25,7 +25,8 @@ export class CompletionService {
         payload.tools = tools;
       }
       const response = await this.client.post('/message', payload);
-      if (!response.data || !response.data.message || !response.data.message.role || !response.data.message.content) {
+      if (!response.data || !response.data.message) {
+        console.error('Invalid response format:', response.data);
         throw new Error('Invalid response format: Missing role or content in message');
       }
       return response.data.message;

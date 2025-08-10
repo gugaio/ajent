@@ -54,7 +54,7 @@ export class AgenticLoop {
       }
       this.messages.push({content: message, role: 'user'});
       this._context.viewer = {};
-      const responseMessage = await this.processConversation(options.streamCallback);
+      const responseMessage = await this.loop(options.streamCallback);
       const response = responseMessage.content;
       logger.info('Ajent reply to user:', response);
       return response;
@@ -72,7 +72,7 @@ export class AgenticLoop {
    * @param {Array<Message>} messages
    * @returns {Promise<Message>}
    */
-  async processConversation(streamCallback) {
+  async loop(streamCallback) {
     let currentStep = 0;
     let streamCallbackWrapper = streamCallback 
     ? (content, isToolCall = false) => {

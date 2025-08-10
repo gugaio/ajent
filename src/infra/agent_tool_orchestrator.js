@@ -27,7 +27,7 @@ export class AgentToolOrchestrator {
     for (const toolCall of toolCalls) {
       try {
         // Check for consecutive tool calls to prevent loops
-        if (this._isConsecutiveToolCall(toolCall.function.name, currentAgent.id)) {
+        if (this._isConsecutiveToolCall(toolCall.function.name, toolCall.function.arguments, currentAgent.id)) {
           logger.warn(`Detected consecutive tool call: ${toolCall.function.name}. Skipping to prevent loop.`);
           toolResults.push(this._createErrorResponse(
             toolCall.id, 
@@ -43,7 +43,7 @@ export class AgentToolOrchestrator {
         const result = await this.invokeTool(toolCall, currentAgent);
         
         // Track this tool call
-        this._trackLastTool(toolCall.function.name, currentAgent.id);
+        this._trackLastTool(toolCall.function.name, toolCall.function.arguments, currentAgent.id);
         const response = this._handleToolCallResult(result, toolCall, currentAgent);        
         if (response.agentTransfer) {
           console.info(`Transferring to agent: ${response.agentTransfer.id}`);
@@ -164,26 +164,32 @@ export class AgentToolOrchestrator {
   }
 
   /**
-   * Checks if a tool is being called consecutively
+   * Checks if a tool is being called consecutively with same parameters
    * @private
    */
-  _isConsecutiveToolCall(toolName, agentId) {
+  _isConsecutiveToolCall(toolName, toolArgs, agentId) {
     // Allow consecutive transfers to enable agent-to-agent redirections
     if (toolName === 'transfer_to_agent') {
       return false;
     }
     
     const key = `${agentId}:lastTool`;
-    return this.toolCallHistory.get(key) === toolName;
+    const lastCall = this.toolCallHistory.get(key);
+    
+    if (!lastCall) {
+      return false;
+    }
+    
+    return lastCall.name === toolName && JSON.stringify(lastCall.args) === JSON.stringify(toolArgs);
   }
 
   /**
-   * Tracks the last tool called for an agent
+   * Tracks the last tool called for an agent with its parameters
    * @private
    */
-  _trackLastTool(toolName, agentId) {
+  _trackLastTool(toolName, toolArgs, agentId) {
     const key = `${agentId}:lastTool`;
-    this.toolCallHistory.set(key, toolName);
+    this.toolCallHistory.set(key, { name: toolName, args: toolArgs });
   }
 
   /**
