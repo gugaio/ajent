@@ -28,7 +28,7 @@ export class Squad {
     );
   }
 
-  async send(message, options={createPlanningTask:false, streamCallback:null }) {
+  async send(message, options={createPlanningTask:false, streamCallback:null, images:null }) {
     return await this._agenticLoop.processMessage(message, options);
   }
 

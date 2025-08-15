@@ -52,6 +52,16 @@ export class AgenticLoop {
        this.planner_agent = this.planner_agent || new PlannerAgent(this._context, message);
        this.current_agent = this.planner_agent;
       }
+      // Add images as separate messages if provided
+      if (options.images && options.images.length > 0) {
+        options.images.forEach(image => {
+          this.messages.push({
+            content: `Attached image (Base64): ${image}`,
+            role: 'user'
+          });
+        });
+      }
+      
       this.messages.push({content: message, role: 'user'});
       this._context.viewer = {};
       const responseMessage = await this.loop(options.streamCallback);
