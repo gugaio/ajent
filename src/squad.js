@@ -15,9 +15,9 @@ export class Squad {
     llmName = config.DEFAULT_LLM_NAME,
     llmTemperature = config.DEFAULT_LLM_TEMPERATURE
   }) {
-    this._agenticLoop = new AgenticLoop(
+    this._agenticLoop = new AgenticLoop({
       apiUrl,
-      apiToken,
+      xApiToken: apiToken,
       agents,
       maxSteps,
       enableStream,
@@ -25,7 +25,7 @@ export class Squad {
       model,
       llmName,
       llmTemperature
-    );
+    });
   }
 
   async send(message, options={createPlanningTask:false, streamCallback:null, images:null }) {

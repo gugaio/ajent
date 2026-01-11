@@ -21,17 +21,17 @@ describe('AgenticLoop', () => {
       new Agent('agent-2', 'Task 2')
     ];
 
-    agenticLoop = new AgenticLoop(
-      'http://api.test',
-      'test-token',
-      mockAgents,
-      10,
-      false,
-      false,
-      'gpt-4',
-      'openai',
-      0.7
-    );
+    agenticLoop = new AgenticLoop({
+      apiUrl: 'http://api.test',
+      xApiToken: 'test-token',
+      agents: mockAgents,
+      maxSteps: 10,
+      enableStream: false,
+      forceTools: false,
+      model: 'gpt-4',
+      llmName: 'openai',
+      llmTemperature: 0.7
+    });
   });
 
   test('initializes with provided agents', () => {

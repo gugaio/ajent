@@ -12,11 +12,17 @@ const logger = new Logger({
 });
 
 export class AgenticLoop {
-  /**
-   * @param {string} apiUrl
-   * @param {Object} agent
-   */
-  constructor(apiUrl, xApiToken, agents, maxSteps, enableStream, forceTools, model, llmName, llmTemperature) {
+  constructor({
+    apiUrl,
+    xApiToken,
+    agents,
+    maxSteps = 10,
+    enableStream = false,
+    forceTools = false,
+    model,
+    llmName,
+    llmTemperature
+  }) {
     this._completionService = new CompletionService(apiUrl, xApiToken);
     this._toolOrchestrator = new AgentToolOrchestrator();
     this._agents = agents;
@@ -215,18 +221,5 @@ export class AgenticLoop {
    */
   hasToolCalls(message) {
     return message.tool_calls?.length > 0;
-  }
-
-  /**
-   * @private
-   * @param {Message} response
-   * @param {Array<Message>} previousMessages
-   * @param {Array<Object>} tools
-   * @returns {Promise<Message>}
-   */
-  async handleToolResponse(response) {
-    const {messages, current_agent} = await this._toolOrchestrator.executeToolCalls(response.tool_calls, this.current_agent);
-    this.current_agent = current_agent;
-    return messages;
   }
 }
