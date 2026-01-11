@@ -1,6 +1,6 @@
 {
   "name": "ajent",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "main": "dist/ajent.cls",
   "module": "dist/ajent.esm.js",
   "type": "module",
@@ -33,7 +33,6 @@
   },
   "dependencies": {
     "@babel/cli": "^7.25.9",
-    "@google/genai": "^1.10.0",
     "axios": "^1.7.7"
   }
 }
