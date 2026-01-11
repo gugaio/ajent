@@ -3,7 +3,7 @@ import { CompletionService } from './completion_service';
 jest.mock('axios');
 
 describe('CompletionService', () => {
-  let api;
+  let completionService;
   let mockHttpClient;
   const baseUrl = 'http://example.com';
   const xApiToken = 'test-token';
@@ -12,16 +12,15 @@ describe('CompletionService', () => {
     mockHttpClient = {
       post: jest.fn()
     };
-    api = new CompletionService(baseUrl, xApiToken, mockHttpClient);
+    completionService = new CompletionService(baseUrl, xApiToken, mockHttpClient);
   });
 
   it('should send a message successfully', async () => {
     const messages = [{ role: 'user', content: 'Hello' }];
-    const expectedResponse = { data: { message: {content: 'Response'} } };
-    
-    mockHttpClient.post.mockResolvedValue(expectedResponse);
 
-    const result = await api.sendMessage(messages);
+    mockHttpClient.post.mockResolvedValue({ data: { message: {content: 'Response'} } });
+
+    const result = await completionService.sendMessage(messages);
 
     expect(mockHttpClient.post).toHaveBeenCalledWith('/message', { messages });
     expect(result.content).toBe('Response');
@@ -30,22 +29,34 @@ describe('CompletionService', () => {
   it('should include tools in payload when provided', async () => {
     const messages = [{ role: 'user', content: 'Hello' }];
     const tools = [{ name: 'tool1' }];
-    const expectedResponse = { data: { message: {content: 'Response'}  } };
-    
-    mockHttpClient.post.mockResolvedValue(expectedResponse);
 
-    await api.sendMessage(messages, tools);
+    mockHttpClient.post.mockResolvedValue({ data: { message: {content: 'Response'}  } });
+
+    await completionService.sendMessage(messages, tools);
 
     expect(mockHttpClient.post).toHaveBeenCalledWith('/message', { messages, tools });
   });
 
+  it('should initialize with x-api-token in headers', () => {
+    const axios = require('axios');
+    completionService = new CompletionService(baseUrl, xApiToken);
+
+    expect(axios.create).toHaveBeenCalledWith({
+      baseURL: baseUrl,
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-token': xApiToken
+      }
+    });
+  });
+
   it('should handle errors', async () => {
     const messages = [{ role: 'user', content: 'Hello' }];
-    const error = new Error('Network error');
     
-    mockHttpClient.post.mockRejectedValue(error);
+    mockHttpClient.post.mockRejectedValue(new Error('Network error'));
 
-    await expect(api.sendMessage(messages)).rejects.toThrow('Failed to send message: Network error');
+    await expect(completionService.sendMessage(messages)).rejects.toThrow('Failed to send message: Network error');
+    
   });
 
 });
